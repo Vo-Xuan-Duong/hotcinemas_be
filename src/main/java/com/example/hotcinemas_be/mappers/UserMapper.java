@@ -1,6 +1,7 @@
 package com.example.hotcinemas_be.mappers;
 
 import com.example.hotcinemas_be.dtos.responses.UserResponse;
+import com.example.hotcinemas_be.models.Role;
 import com.example.hotcinemas_be.models.User;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class UserMapper {
                 .phoneNumber(user.getPhoneNumber())
                 .avatarUrl(user.getAvatarUrl())
                 .isActive(user.getIsActive())
-                .roles(user.getRoles().stream().map(roleMapper::mapToResponse).collect(Collectors.toSet()))
+                .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

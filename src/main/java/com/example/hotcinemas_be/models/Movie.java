@@ -58,7 +58,7 @@ public class Movie {
     private String trailerUrl;
 
     @Column(name = "release_date")
-    private String releaseDate;
+    private LocalDateTime releaseDate;
 
     @Column(name = "duration_minutes", nullable = false)
     private Integer durationMinutes;
@@ -89,7 +89,7 @@ public class Movie {
     private Double rating;
 
     @Column(name = "is_active", nullable = false)
-    private boolean isActive;
+    private Boolean isActive;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

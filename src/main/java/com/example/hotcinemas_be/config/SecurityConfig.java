@@ -59,8 +59,17 @@ public class SecurityConfig {
         daoAuthenticationProvider.setUserDetailsService(this.userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
         return daoAuthenticationProvider;
-
     }
+
+    private String[] PUBLIC_ENDPOINTS = {
+            "/api/auth/**",
+            "/api-docs",
+            "/api/movies/**",
+            "/api/theaters/**",
+            "/api/tickets/**",
+            "/swagger-ui/**", "/swagger-ui.html",
+            "/v3/api-docs/**", "/swagger-resources/**",
+    };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -69,10 +78,7 @@ public class SecurityConfig {
         http.sessionManagement(sessionManagement ->
                 sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(authorize ->
-                authorize.requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/movies/**").permitAll()
-                        .requestMatchers("/api/theaters/**").permitAll()
-                        .requestMatchers("/api/tickets/**").permitAll()
+                authorize.requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().permitAll());
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

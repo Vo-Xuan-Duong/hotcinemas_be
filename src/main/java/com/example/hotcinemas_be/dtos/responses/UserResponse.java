@@ -22,7 +22,7 @@ public class UserResponse {
     private String phoneNumber;
     private String avatarUrl;
     private Boolean isActive;
-    private Set<RoleResponse> roles;
+    private Set<String> roles;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

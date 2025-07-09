@@ -50,6 +50,9 @@ public class Promotion {
     @Column(name = "discount_value", nullable = false)
     private BigDecimal discountValue; // DECIMAL(5,2) in DB, Double in Java
 
+    @Column(name = "quantity") // Nullable, Integer in DB
+    private Integer quantity; // Nullable, Integer in Java
+
     @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate;
 

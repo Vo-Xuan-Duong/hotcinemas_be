@@ -1,7 +1,20 @@
 package com.example.hotcinemas_be.services;
 
-import org.springframework.stereotype.Service;
+import com.example.hotcinemas_be.dtos.requests.CinemaRequest;
+import com.example.hotcinemas_be.dtos.responses.CinemaResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-@Service
+import java.util.List;
+
+
 public interface CinemaService {
+    public CinemaResponse createCinema(CinemaRequest cinemaRequest);
+    public CinemaResponse getCinemaById(Long cinemaId);
+    public CinemaResponse updateCinema(Long cinemaId, CinemaRequest cinemaRequest);
+    public void deleteCinema(Long cinemaId);
+    public CinemaResponse getCinemaByName(String name);
+    public Page<CinemaResponse> getAllCinemas(Pageable pageable);
+    public Page<CinemaResponse> searchCinemas(String keyword, Pageable pageable);
+    public Page<CinemaResponse> getCinemasByCity(String city, Pageable pageable);
 }

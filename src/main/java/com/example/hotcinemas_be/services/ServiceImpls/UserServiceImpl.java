@@ -166,28 +166,36 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse addRoleToUser(Long id, String roleName) {
+    public UserResponse addRolesToUser(Long id, List<String> roleName) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("User not found when add role to user", ErrorCode.ERROR_MODEL_NOT_FOUND));
-        Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new ErrorException("Role not found with name: " + roleName, ErrorCode.ERROR_MODEL_NOT_FOUND));
-        if (user.getRoles().contains(role)) {
-            throw new ErrorException("User already has this role", ErrorCode.ERROR_INVALID_REQUEST);
+                .orElseThrow(() -> new ErrorException("User not found when add roles to user", ErrorCode.ERROR_MODEL_NOT_FOUND));
+        Set<Role> rolesToAdd = new HashSet<>();
+        for (String name : roleName) {
+            Role role = roleRepository.findByName(name)
+                    .orElseThrow(() -> new ErrorException("Role not found with name: " + name, ErrorCode.ERROR_MODEL_NOT_FOUND));
+            if (user.getRoles().contains(role)) {
+                throw new ErrorException("User already has this role: " + name, ErrorCode.ERROR_INVALID_REQUEST);
+            }
+            rolesToAdd.add(role);
         }
-        user.getRoles().add(role);
+        user.getRoles().addAll(rolesToAdd);
         return userMapper.mapToResponse(userRepository.save(user));
     }
 
     @Override
-    public UserResponse removeRoleFromUser(Long id, String roleName) {
+    public UserResponse removeRolesFromUser(Long id, List<String> roleName) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("User not found when remove role from user", ErrorCode.ERROR_MODEL_NOT_FOUND));
-        Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new ErrorException("Role not found with name: " + roleName, ErrorCode.ERROR_MODEL_NOT_FOUND));
-        if (!user.getRoles().contains(role)) {
-            throw new ErrorException("User does not have this role", ErrorCode.ERROR_INVALID_REQUEST);
+                .orElseThrow(() -> new ErrorException("User not found when remove roles from user", ErrorCode.ERROR_MODEL_NOT_FOUND));
+        Set<Role> rolesToRemove = new HashSet<>();
+        for (String name : roleName) {
+            Role role = roleRepository.findByName(name)
+                    .orElseThrow(() -> new ErrorException("Role not found with name: " + name, ErrorCode.ERROR_MODEL_NOT_FOUND));
+            if (!user.getRoles().contains(role)) {
+                throw new ErrorException("User does not have this role: " + name, ErrorCode.ERROR_INVALID_REQUEST);
+            }
+            rolesToRemove.add(role);
         }
-        user.getRoles().remove(role);
+        user.getRoles().removeAll(rolesToRemove);
         return userMapper.mapToResponse(userRepository.save(user));
     }
 
