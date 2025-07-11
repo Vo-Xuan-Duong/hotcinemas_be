@@ -13,8 +13,8 @@ public interface MovieService {
     public void deleteMovie(Long movieId);
     public Page<MovieResponse> getAllMovies(Pageable pageable);
     Object getMoviesByGenre(String genre, Pageable pageable);
-
     Object getComingSoonMovies(Pageable pageable);
-
     Object getNowShowingMovies(Pageable pageable);
+    Object searchMovies(String keyword, String genre, String language, String country, Pageable pageable);
+    public void deleteAllMovies();
 }

@@ -142,4 +142,27 @@ public class MovieServiceImpl implements MovieService {
         }
         return moviePage.map(movieMapper::mapToResponse);
     }
+
+    @Override
+    public Object searchMovies(String keyword, String genre, String language, String country, Pageable pageable) {
+        String searchKeyword = (keyword != null && keyword.trim().isEmpty()) ? null : keyword;
+        String searchGenre = (genre != null && genre.trim().isEmpty()) ? null : genre;
+        String searchLanguage = (language != null && language.trim().isEmpty()) ? null : language;
+        String searchCountry = (country != null && country.trim().isEmpty()) ? null : country;
+
+        Page<Movie> moviePage = movieRepository.searchMovies(searchKeyword, searchGenre, searchLanguage, searchCountry, pageable);
+
+        if (moviePage.isEmpty()) {
+            throw new ErrorException("No movies found matching the search criteria", ErrorCode.ERROR_MODEL_NOT_FOUND);
+        }
+        return moviePage.map(movieMapper::mapToResponse);
+    }
+
+    @Override
+    public void deleteAllMovies() {
+        if (movieRepository.count() == 0) {
+            throw new ErrorException("No movies to delete", ErrorCode.ERROR_MODEL_NOT_FOUND);
+        }
+        movieRepository.deleteAll();
+    }
 }

@@ -96,6 +96,26 @@ public class MovieController {
         }
     }
 
+    @Operation(summary = "Search movies", description = "Search for movies by keyword, genre, language, or country")
+    @GetMapping("/search")
+    public ResponseEntity<?> searchMovies(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String genre,
+            @RequestParam(required = false) String language,
+            @RequestParam(required = false) String country,
+            Pageable pageable) {
+        try {
+            ResponseData<?> responseData = ResponseData.builder()
+                    .status(200)
+                    .message("Successfully retrieved search results")
+                    .data(movieService.searchMovies(keyword, genre, language, country, pageable))
+                    .build();
+            return ResponseEntity.ok(responseData);
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body("An error occurred while searching movies: " + ex.getMessage());
+        }
+    }
+
     @Operation(summary = "Create a new movie", description = "Allows an admin to create a new movie in the cinema system")
     @PostMapping
     public ResponseEntity<?> createMovie(@RequestBody MovieRequest movieRequest) {
@@ -109,6 +129,54 @@ public class MovieController {
             return ResponseEntity.status(201).body(responseData);
         } catch (Exception ex) {
             return ResponseEntity.badRequest().body("Error creating movie: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Update a movie", description = "Allows an admin to update an existing movie in the cinema system")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateMovie(@PathVariable Long id, @RequestBody MovieRequest movieRequest) {
+        try {
+            ResponseData<?> responseData = ResponseData.builder()
+                    .status(200)
+                    .message("Movie has been successfully updated")
+                    .data(movieService.updateMovie(id, movieRequest))
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.ok(responseData);
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body("Error updating movie: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Delete a movie", description = "Allows an admin to delete a movie from the cinema system")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteMovie(@PathVariable Long id) {
+        try {
+            movieService.deleteMovie(id);
+            ResponseData<?> responseData = ResponseData.builder()
+                    .status(200)
+                    .message("Movie has been successfully deleted")
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.ok(responseData);
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body("Error deleting movie: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Delete all movies", description = "Allows an admin to delete all movies from the cinema system")
+    @DeleteMapping
+    public ResponseEntity<?> deleteAllMovies() {
+        try {
+            movieService.deleteAllMovies();
+            ResponseData<?> responseData = ResponseData.builder()
+                    .status(200)
+                    .message("All movies have been successfully deleted")
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.ok(responseData);
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body("Error deleting all movies: " + ex.getMessage());
         }
     }
 }
