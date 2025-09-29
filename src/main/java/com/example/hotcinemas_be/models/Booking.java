@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "bookings")
@@ -47,20 +49,32 @@ public class Booking {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "showtime_id", nullable = false)
+    private Showtime showtime;
+
+    @Column(name = "booking_code", unique = true, length = 50)
+    private String bookingCode; // Unique code for the booking
+
     @Builder.Default
     @Column(name = "booking_date", nullable = false)
     private LocalDateTime bookingDate = LocalDateTime.now();
 
-    @Column(name = "total_amount", nullable = false)
+    @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount; // DECIMAL(10,2) in DB, Double in Java
-
-    @Column(name = "final_paid_amount", nullable = false)
-    private BigDecimal finalPaidAmount; // DECIMAL(10,2) in DB, Double in Java
 
     @Builder.Default
     @Enumerated(EnumType.STRING) // Map ENUM to String in DB
-    @Column(name = "booking_status", nullable = false, columnDefinition = "booking_status_enum") // Use custom type
+    @Column(name = "booking_status", nullable = false, length = 20) // Use custom type
     private BookingStatus bookingStatus = BookingStatus.PENDING;
+
+    @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt; // Automatically set to current time
+
+    @Column(name = "updated_at")
+    @UpdateTimestamp
+    private LocalDateTime updatedAt; // Automatically set to current time
 
     // Relationships
     @Builder.Default
@@ -79,4 +93,19 @@ public class Booking {
     )
     @Builder.Default
     private Set<Promotion> promotions = new HashSet<>();
+
+    // Helper methods
+    public Integer getTotalSeats() {
+        return tickets.size();
+    }
+
+    public boolean hasPromotion() {
+        return !promotions.isEmpty();
+    }
+
+    public BigDecimal getPromotionDiscount() {
+        return promotions.stream()
+                .map(Promotion::getDiscountValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

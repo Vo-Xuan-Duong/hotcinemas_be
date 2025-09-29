@@ -2,7 +2,6 @@ package com.example.hotcinemas_be.controllers;
 
 import com.example.hotcinemas_be.dtos.ResponseData;
 import com.example.hotcinemas_be.dtos.requests.CinemaRequest;
-import com.example.hotcinemas_be.dtos.responses.CinemaResponse;
 import com.example.hotcinemas_be.services.CinemaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/cinemas")

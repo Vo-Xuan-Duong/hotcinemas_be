@@ -1,7 +1,8 @@
 package com.example.hotcinemas_be.services;
 
-import org.springframework.stereotype.Service;
+import com.example.hotcinemas_be.dtos.requests.BookingRequest;
+import com.example.hotcinemas_be.dtos.responses.BookingResponse;
 
-@Service
 public interface BookingService {
+    public BookingResponse createBooking(BookingRequest bookingRequest);
 }

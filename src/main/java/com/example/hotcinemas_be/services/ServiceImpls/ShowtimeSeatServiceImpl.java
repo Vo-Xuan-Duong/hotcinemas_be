@@ -1,8 +1,10 @@
 package com.example.hotcinemas_be.services.ServiceImpls;
 
+import com.example.hotcinemas_be.dtos.responses.ShowtimeSeatResponse;
 import com.example.hotcinemas_be.enums.SeatStatus;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
+import com.example.hotcinemas_be.mappers.ShowtimeSeatMapper;
 import com.example.hotcinemas_be.models.Room;
 import com.example.hotcinemas_be.models.Seat;
 import com.example.hotcinemas_be.models.Showtime;
@@ -25,13 +27,16 @@ public class ShowtimeSeatServiceImpl implements ShowtimeSeatService {
     private final ShowtimeSeatRepository showtimeSeatRepository;
     private final ShowtimeRepository showtimeRepository;
     private final UserRepository userRepository;
+    private final ShowtimeSeatMapper  showtimeSeatMapper;
 
     public ShowtimeSeatServiceImpl(ShowtimeSeatRepository showtimeSeatRepository,
                                    ShowtimeRepository showtimeRepository,
-                                   UserRepository userRepository) {
+                                   UserRepository userRepository,
+                                   ShowtimeSeatMapper showtimeSeatMapper) {
         this.showtimeSeatRepository = showtimeSeatRepository;
         this.showtimeRepository = showtimeRepository;
         this.userRepository = userRepository;
+        this.showtimeSeatMapper = showtimeSeatMapper;
     }
 
     @Override
@@ -97,5 +102,15 @@ public class ShowtimeSeatServiceImpl implements ShowtimeSeatService {
         log.info("Updated showtime seat with id: {} to status: {}", showtimeSeatId, status);
 
         return true;
+    }
+
+    @Override
+    public List<ShowtimeSeatResponse> getShowtimeSeatsByShowtimeId(Long showtimeId) {
+        List<ShowtimeSeat> showtimeSeats = showtimeSeatRepository.findAllByShowtime_ShowtimeId(showtimeId);
+        if (showtimeSeats.isEmpty()) {
+            log.warn("No showtime seats found for showtime with id: {}", showtimeId);
+            return List.of(); // Return empty list if no seats found
+        }
+        return showtimeSeats.stream().map(showtimeSeatMapper::mapToResponse).toList();
     }
 }

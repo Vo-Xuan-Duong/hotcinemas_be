@@ -2,6 +2,7 @@ package com.example.hotcinemas_be.services.ServiceImpls;
 
 import com.example.hotcinemas_be.dtos.requests.SeatRequest;
 import com.example.hotcinemas_be.dtos.responses.SeatResponse;
+import com.example.hotcinemas_be.enums.SeatType;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
 import com.example.hotcinemas_be.mappers.SeatMapper;
@@ -99,15 +100,11 @@ public class SeatServiceImpl implements SeatService {
     public SeatResponse updateSeat(Long seatId, SeatRequest seatRequest) {
         Seat seat = seatRepository.findById(seatId)
                 .orElseThrow(() -> new ErrorException("Seat not found with id: " + seatId, ErrorCode.ERROR_MODEL_NOT_FOUND));
-        if (seatRequest.getRowNumber() != null) {
-            seat.setRowNumber(seatRequest.getRowNumber());
-        }
-        if (seatRequest.getSeatNumber() != null) {
-            seat.setSeatNumber(seatRequest.getSeatNumber());
-        }
-        if(seatRequest.getSeatType() != null) {
-            seat.setSeatType(seatRequest.getSeatType());
-        }
+        seat.setRowNumber(seatRequest.getRowNumber());
+        seat.setSeatNumber(seatRequest.getSeatNumber());
+        seat.setIsPhysicalAvailable(seatRequest.getPhysicalAvailable());
+        seat.setSeatType(seatRequest.getSeatType());
+        
         return  seatMapper.mapToResponse(seatRepository.save(seat));
     }
 

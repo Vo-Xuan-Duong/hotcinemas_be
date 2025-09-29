@@ -46,7 +46,7 @@ public class ShowtimeSeat {
 
     @Builder.Default
     @Enumerated(EnumType.STRING) // Map ENUM to String in DB
-    @Column(name = "status", nullable = false, columnDefinition = "seat_status_enum") // Use custom type
+    @Column(name = "status", nullable = false) // Use custom type
     private SeatStatus status = SeatStatus.AVAILABLE;
 
     @ManyToOne(fetch = FetchType.LAZY)

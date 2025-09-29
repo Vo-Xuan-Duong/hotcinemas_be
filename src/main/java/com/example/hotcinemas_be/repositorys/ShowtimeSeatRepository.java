@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface ShowtimeSeatRepository extends JpaRepository<ShowtimeSeat, Long> {
     List<ShowtimeSeat> findByShowtime(Showtime showtime);
+
+    List<ShowtimeSeat> findAllByShowtime_ShowtimeId(Long showtimeShowtimeId);
 }

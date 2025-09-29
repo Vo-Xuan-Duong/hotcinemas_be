@@ -73,7 +73,7 @@ public class Movie {
     private List<String> casts;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "audio_options", columnDefinition = "audio_option_enum") // Use custom type
+    @Column(name = "audio_options") // Use custom type
     private List<AudioOption> audioOptions;
 
     @Column(name = "age_lable", length = 100)

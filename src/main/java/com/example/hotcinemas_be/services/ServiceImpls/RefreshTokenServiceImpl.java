@@ -48,8 +48,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                 .toList();
     }
 
-    public void deleteRefreshToken(String tokenId) {
-        RefreshToken refreshToken = refreshTokenRepository.findById(tokenId)
+    public void deleteRefreshToken(String token) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
                 .orElseThrow(() -> new ErrorException("Refresh token not found", ErrorCode.ERROR_MODEL_NOT_FOUND));
         refreshTokenRepository.delete(refreshToken);
     }

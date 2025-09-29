@@ -53,7 +53,7 @@ public class Room {
     private Integer capacity;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "room_type", length = 50, columnDefinition = "room_type_enum")
+    @Column(name = "room_type")
     private RoomType roomType;
 
     @Column(name = "created_at", updatable = false)

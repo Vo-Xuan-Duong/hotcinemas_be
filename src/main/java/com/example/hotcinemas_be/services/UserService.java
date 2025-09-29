@@ -1,5 +1,6 @@
 package com.example.hotcinemas_be.services;
 
+import com.example.hotcinemas_be.dtos.requests.UserUpdateRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -22,7 +23,9 @@ public interface UserService {
     public UserResponse registerUser(RegisterRequest registerRequest) ;
     public UserResponse updateUserAvatar(Long id, String avatarUrl) ;
     public UserResponse updateUserPassword(Long id, UpdatePasswordRequest updatePasswordRequest) ;
-    public UserResponse updateInfoUser(Long id, UserRequest userRequest) ;
+    public UserResponse getUserInfo();
+    public Boolean changePassword(String newPassword) ;
+    public UserResponse updateInfoUser(UserUpdateRequest userUpdateRequest) ;
     public UserResponse addRolesToUser(Long id, List<String> roleName) ;
     public UserResponse removeRolesFromUser(Long id, List<String> roleName) ;
     public boolean activateUser(Long id) ;

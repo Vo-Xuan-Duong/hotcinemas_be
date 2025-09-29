@@ -14,4 +14,5 @@ public class SeatRequest {
     private String rowNumber;
     private Integer seatNumber;
     private SeatType seatType; // e.g., "Regular", "VIP", "Disabled"
+    private Boolean physicalAvailable;
 }

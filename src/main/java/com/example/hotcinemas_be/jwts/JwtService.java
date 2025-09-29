@@ -43,9 +43,7 @@ public class JwtService {
         this.refreshTokenService = refreshTokenService;
     }
 
-    public String generateToken(TokenType tokenType, UserDetails userDetails) {
-
-        String tokenId = UUID.randomUUID().toString();
+    public String generateToken(TokenType tokenType, UserDetails userDetails, String tokenId) {
 
         String token = Jwts.builder()
                 .claim("roles : ", getRole(userDetails))
@@ -98,7 +96,7 @@ public class JwtService {
                 .verifyWith(getSecretKey(tokenType))
                 .requireIssuer(ISSUER)
                 .build()
-                .parseEncryptedClaims(token)
+                .parseSignedClaims(token)
                 .getPayload();
     }
 
@@ -124,6 +122,4 @@ public class JwtService {
     public String extractEmail(String token, TokenType tokenType) {
         return extractClaims(token, tokenType).get("email", String.class);
     }
-
-
 }

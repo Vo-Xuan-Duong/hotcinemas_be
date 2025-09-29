@@ -55,7 +55,7 @@ public class Seat {
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(name = "seat_type", nullable = false, columnDefinition = "seat_type_enum") // Use custom type
+    @Column(name = "seat_type", nullable = false) // Use custom type
     private SeatType seatType = SeatType.NORMAL; // Default to REGULAR
 
     @Builder.Default

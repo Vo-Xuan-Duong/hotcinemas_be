@@ -14,7 +14,7 @@ public class BlackListServiceImpl implements BlackListService {
     }
 
     public Boolean isTokenBlacklisted(String token) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(token));
+        return redisTemplate.hasKey(token);
     }
 
     public void saveTokenToBlacklist(String token, String value) {

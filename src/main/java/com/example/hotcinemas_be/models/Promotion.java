@@ -44,7 +44,7 @@ public class Promotion {
     private String description;
 
     @Enumerated(EnumType.STRING) // Map ENUM to String in DB
-    @Column(name = "discount_type", nullable = false, columnDefinition = "discount_type_enum") // Use custom type
+    @Column(name = "discount_type", nullable = false) // Use custom type
     private DiscountType discountType;
 
     @Column(name = "discount_value", nullable = false)

@@ -50,7 +50,7 @@ public class Payment {
     private BigDecimal amount; // DECIMAL(10,2) in DB, Double in Java
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_method", nullable = false, columnDefinition = "payment_method_enum") // Use custom type
+    @Column(name = "payment_method", nullable = false) // Use custom type
     private PaymentMethod paymentMethod;
 
     @Column(name = "transaction_id", unique = true, length = 100)
@@ -58,7 +58,7 @@ public class Payment {
 
     @Builder.Default
     @Enumerated(EnumType.STRING) // Map ENUM to String in DB
-    @Column(name = "status", nullable = false, columnDefinition = "payment_status_enum") // Use custom type
+    @Column(name = "status", nullable = false) // Use custom type
     private PaymentStatus status = PaymentStatus.PENDING;
 
     @Builder.Default

@@ -3,6 +3,7 @@ package com.example.hotcinemas_be.services.ServiceImpls;
 import com.example.hotcinemas_be.dtos.requests.RegisterRequest;
 import com.example.hotcinemas_be.dtos.requests.UpdatePasswordRequest;
 import com.example.hotcinemas_be.dtos.requests.UserRequest;
+import com.example.hotcinemas_be.dtos.requests.UserUpdateRequest;
 import com.example.hotcinemas_be.dtos.responses.UserResponse;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
@@ -14,6 +15,7 @@ import com.example.hotcinemas_be.repositorys.UserRepository;
 import com.example.hotcinemas_be.services.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -152,15 +154,37 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse updateInfoUser(Long id, UserRequest userRequest) {
-        User user = userRepository.findById(id)
+    public UserResponse getUserInfo() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ErrorException("User not found when get user info", ErrorCode.ERROR_MODEL_NOT_FOUND));
+
+        return userMapper.mapToResponse(user);
+    }
+
+    @Override
+    public Boolean changePassword(String newPassword) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ErrorException("User not found when change password", ErrorCode.ERROR_MODEL_NOT_FOUND));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        return true;
+    }
+
+    @Override
+    public UserResponse updateInfoUser(UserUpdateRequest userUpdateRequest) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ErrorException("User not found when update info", ErrorCode.ERROR_MODEL_NOT_FOUND));
 
-        user.setUsername(userRequest.getUsername());
-        user.setEmail(userRequest.getEmail());
-        user.setPhoneNumber(userRequest.getPhoneNumber());
-        user.setAvatarUrl(userRequest.getAvatarUrl());
-        user.setFullName(userRequest.getFullName());
+        user.setEmail(userUpdateRequest.getEmail());
+        user.setPhoneNumber(userUpdateRequest.getPhoneNumber());
+        user.setFullName(userUpdateRequest.getFullName());
 
         return userMapper.mapToResponse(userRepository.save(user));
     }

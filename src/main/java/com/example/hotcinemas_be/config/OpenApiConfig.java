@@ -33,13 +33,13 @@ public class OpenApiConfig {
                         .license(new License()
                                 .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")))
-//                .servers(List.of(
-//                        new Server().url("http://localhost:8080").description("Development Server"),
-//                        new Server().url("https://api.hotcinemas.com").description("Production Server")
-//                ))
-//                .externalDocs(new ExternalDocumentation()
-//                        .description("HotCinemas Documentation")
-//                        .url("https://docs.hotcinemas.com"))
+                .servers(List.of(
+                        new Server().url("http://localhost:8080").description("Development Server"),
+                        new Server().url("https://api.hotcinemas.com").description("Production Server")
+                ))
+                .externalDocs(new ExternalDocumentation()
+                        .description("HotCinemas Documentation")
+                        .url("https://docs.hotcinemas.com"))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,

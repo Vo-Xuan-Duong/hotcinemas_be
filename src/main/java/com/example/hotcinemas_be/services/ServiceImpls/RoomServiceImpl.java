@@ -2,6 +2,7 @@ package com.example.hotcinemas_be.services.ServiceImpls;
 
 import com.example.hotcinemas_be.dtos.requests.RoomRequest;
 import com.example.hotcinemas_be.dtos.responses.RoomResponse;
+import com.example.hotcinemas_be.enums.RoomType;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
 import com.example.hotcinemas_be.mappers.RoomMapper;

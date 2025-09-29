@@ -5,4 +5,5 @@ import com.example.hotcinemas_be.dtos.responses.RefreshTokenResponse;
 
 public interface RefreshTokenService {
     RefreshTokenResponse createRefreshToken(RefreshTokenRequest refreshTokenRequest);
+    public void deleteRefreshToken(String refreshToken);
 }
