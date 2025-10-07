@@ -1,7 +1,7 @@
 package com.example.hotcinemas_be.services.ServiceImpls;
 
-import com.example.hotcinemas_be.dtos.requests.RoomRequest;
-import com.example.hotcinemas_be.dtos.responses.RoomResponse;
+import com.example.hotcinemas_be.dtos.room.requests.RoomRequest;
+import com.example.hotcinemas_be.dtos.room.responses.RoomResponse;
 import com.example.hotcinemas_be.enums.RoomType;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
@@ -27,9 +27,9 @@ public class RoomServiceImpl implements RoomService {
     private final SeatService seatService;
 
     public RoomServiceImpl(RoomRepository roomRepository,
-                           RoomMapper roomMapper,
-                           CinemaRepository cinemaRepository,
-                           SeatService seatService) {
+            RoomMapper roomMapper,
+            CinemaRepository cinemaRepository,
+            SeatService seatService) {
         this.roomRepository = roomRepository;
         this.roomMapper = roomMapper;
         this.cinemaRepository = cinemaRepository;
@@ -37,35 +37,43 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public RoomResponse createRoom(Long cinemaId ,RoomRequest roomRequest) {
-        Cinema cinema = cinemaRepository.findCinemaByCinemaId(cinemaId)
+    public RoomResponse createRoom(Long cinemaId, RoomRequest roomRequest) {
+        Cinema cinema = cinemaRepository.findById(cinemaId)
                 .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + cinemaId));
 
         Room room = new Room();
-        room.setRoomNumber(roomRequest.getRoomNumber());
+        room.setName(roomRequest.getName());
         room.setRoomType(roomRequest.getRoomType());
-        room.setCapacity(roomRequest.getRowsCount()* roomRequest.getSeatsPerRow());
+        room.setPrice(roomRequest.getPrice());
+        room.setRowsCount(roomRequest.getRowsCount());
+        room.setSeatsPerRow(roomRequest.getSeatsPerRow());
+        room.setIsActive(true);
         room.setCinema(cinema);
         Room savedRoom = roomRepository.save(room);
 
-        seatService.createSeatsForRoom(savedRoom, roomRequest.getRowsCount(), roomRequest.getSeatsPerRow(), roomRequest.getPriceMultiplier());
+        seatService.createSeatsForRoom(savedRoom.getId(), roomRequest.getRowsCount(), roomRequest.getSeatsPerRow());
         return roomMapper.mapToResponse(savedRoom);
     }
 
     @Override
     public RoomResponse getRoomById(Long roomId) {
-        Room room  = roomRepository.findById(roomId)
-                .orElseThrow(() -> new ErrorException("Room not found with id: " + roomId, ErrorCode.ERROR_MODEL_NOT_FOUND));
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(
+                        () -> new ErrorException("Room not found with id: " + roomId, ErrorCode.ERROR_MODEL_NOT_FOUND));
         return roomMapper.mapToResponse(room);
     }
 
     @Override
     public RoomResponse updateRoom(Long roomId, RoomRequest roomRequest) {
-        Room room = roomRepository.findById(roomId).orElseThrow(() -> new ErrorException("Room not found with id: " + roomId, ErrorCode.ERROR_MODEL_NOT_FOUND));
+        Room room = roomRepository.findById(roomId).orElseThrow(
+                () -> new ErrorException("Room not found with id: " + roomId, ErrorCode.ERROR_MODEL_NOT_FOUND));
 
-        room.setRoomNumber(roomRequest.getRoomNumber());
+        room.setName(roomRequest.getName());
         room.setRoomType(roomRequest.getRoomType());
-        room.setCapacity(roomRequest.getRowsCount() * roomRequest.getSeatsPerRow());
+        room.setPrice(roomRequest.getPrice());
+        room.setRowsCount(roomRequest.getRowsCount());
+        room.setSeatsPerRow(roomRequest.getSeatsPerRow());
+        room.setIsActive(room.getIsActive());
 
         return roomMapper.mapToResponse(roomRepository.save(room));
     }
@@ -73,19 +81,34 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public void deleteRoom(Long roomId) {
         Room room = roomRepository.findById(roomId)
-                .orElseThrow(() -> new ErrorException("Room not found with id: " + roomId, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(
+                        () -> new ErrorException("Room not found with id: " + roomId, ErrorCode.ERROR_MODEL_NOT_FOUND));
         roomRepository.delete(room);
     }
 
     @Override
-    public Page<RoomResponse> getAllRooms(Pageable pageable) {
+    public Page<RoomResponse> getPageRooms(Pageable pageable) {
         Page<Room> rooms = roomRepository.findAll(pageable);
         return rooms.map(roomMapper::mapToResponse);
     }
 
     @Override
-    public Page<RoomResponse> getRoomsByCinemaId(Long cinemaId, Pageable pageable) {
-        Page<Room> rooms = roomRepository.findRoomsByCinema_CinemaId(cinemaId, pageable);
+    public List<RoomResponse> getAllRooms() {
+        List<Room> rooms = roomRepository.findAll();
+        if(rooms.isEmpty()) {
+            throw new ErrorException("No rooms found", ErrorCode.ERROR_MODEL_NOT_FOUND);
+        }
+        return rooms.stream().map(roomMapper::mapToResponse).toList();
+    }
+
+    @Override
+    public List<RoomResponse> getAllRoomsByCinemaId(Long cinemaId) {
+        return List.of();
+    }
+
+    @Override
+    public Page<RoomResponse> getPageRoomsByCinemaId(Long cinemaId, Pageable pageable) {
+        Page<Room> rooms = roomRepository.findRoomsByCinema_Id(cinemaId, pageable);
         if (rooms.isEmpty()) {
             throw new ErrorException("No rooms found for cinema with id: " + cinemaId, ErrorCode.ERROR_MODEL_NOT_FOUND);
         }
@@ -94,12 +117,12 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public void deleteRoomsByCinemaId(Long cinemaId) {
-        List<Room> rooms = roomRepository.findRoomsByCinema_CinemaId(cinemaId, Pageable.unpaged()).getContent();
+        List<Room> rooms = roomRepository.findRoomsByCinema_Id(cinemaId, Pageable.unpaged()).getContent();
         if (rooms.isEmpty()) {
             throw new ErrorException("No rooms found for cinema with id: " + cinemaId, ErrorCode.ERROR_MODEL_NOT_FOUND);
         }
         for (Room room : rooms) {
-            seatService.deleteSeatsByRoomId(room.getRoomId());
+            seatService.deleteSeatsByRoomId(room.getId());
             roomRepository.delete(room);
         }
     }

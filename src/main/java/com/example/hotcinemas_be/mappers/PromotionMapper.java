@@ -1,6 +1,6 @@
 package com.example.hotcinemas_be.mappers;
 
-import com.example.hotcinemas_be.dtos.responses.PromotionResponse;
+import com.example.hotcinemas_be.dtos.promotion.responses.PromotionResponse;
 import com.example.hotcinemas_be.models.Promotion;
 import org.springframework.stereotype.Service;
 
@@ -12,14 +12,16 @@ public class PromotionMapper {
         }
 
         PromotionResponse response = new PromotionResponse();
-        response.setPromotionId(promotion.getPromotionId());
+        response.setId(promotion.getId());
         response.setCode(promotion.getCode());
         response.setDescription(promotion.getDescription());
-        response.setDiscountType(promotion.getDiscountType());
         response.setQuantity(promotion.getQuantity());
         response.setDiscountValue(promotion.getDiscountValue());
         response.setStartDate(promotion.getStartDate());
         response.setEndDate(promotion.getEndDate());
+        response.setMinOrderAmount(promotion.getMinOrderAmount());
+        response.setMaxDiscountAmount(promotion.getMaxDiscountAmount());
+        response.setActive(promotion.getIsActive());
 
         return response;
     }

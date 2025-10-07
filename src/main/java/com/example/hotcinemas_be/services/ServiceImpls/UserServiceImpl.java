@@ -1,10 +1,10 @@
 package com.example.hotcinemas_be.services.ServiceImpls;
 
-import com.example.hotcinemas_be.dtos.requests.RegisterRequest;
-import com.example.hotcinemas_be.dtos.requests.UpdatePasswordRequest;
-import com.example.hotcinemas_be.dtos.requests.UserRequest;
-import com.example.hotcinemas_be.dtos.requests.UserUpdateRequest;
-import com.example.hotcinemas_be.dtos.responses.UserResponse;
+import com.example.hotcinemas_be.dtos.auth.requests.RegisterRequest;
+import com.example.hotcinemas_be.dtos.user.requests.UpdatePasswordRequest;
+import com.example.hotcinemas_be.dtos.user.requests.UserRequest;
+import com.example.hotcinemas_be.dtos.user.requests.UserUpdateRequest;
+import com.example.hotcinemas_be.dtos.user.responses.UserResponse;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
 import com.example.hotcinemas_be.mappers.UserMapper;
@@ -31,10 +31,10 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public  UserServiceImpl(UserRepository userRepository,
-                            RoleRepository roleRepository,
-                            UserMapper userMapper,
-                            PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository,
+            RoleRepository roleRepository,
+            UserMapper userMapper,
+            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
@@ -47,26 +47,33 @@ public class UserServiceImpl implements UserService {
         user.setUsername(userRequest.getUsername());
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         user.setEmail(userRequest.getEmail());
-        user.setPhoneNumber(userRequest.getPhoneNumber());
+        user.setPhone(userRequest.getPhoneNumber());
         user.setAvatarUrl(userRequest.getAvatarUrl());
         user.setFullName(userRequest.getFullName());
+        user.setAddress(userRequest.getAddress());
         user.setIsActive(true);
-        Set<Role> roles = new HashSet<>();
-        roles.add(roleRepository.findByName("User").orElseThrow(() -> new ErrorException("Role not found when add role to create user", ErrorCode.ERROR_MODEL_NOT_FOUND)));
-        user.setRoles(roles);
+        user.setRole(roleRepository.findByCode("USER")
+                .orElseThrow(() -> new ErrorException("Role not found when add role to create user",
+                        ErrorCode.ERROR_MODEL_NOT_FOUND)));
         return userMapper.mapToResponse(userRepository.save(user));
     }
 
     @Override
     public UserResponse updateUser(Long userId, UserRequest userRequest) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ErrorException("User not found when update user", ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(
+                        () -> new ErrorException("User not found when update user", ErrorCode.ERROR_MODEL_NOT_FOUND));
 
         user.setUsername(userRequest.getUsername());
         user.setEmail(userRequest.getEmail());
-        user.setPhoneNumber(userRequest.getPhoneNumber());
+        user.setPhone(userRequest.getPhoneNumber());
         user.setAvatarUrl(userRequest.getAvatarUrl());
         user.setFullName(userRequest.getFullName());
+        user.setAddress(userRequest.getAddress());
+        user.setIsActive(userRequest.isActive());
+        user.setRole(roleRepository.findByCode(userRequest.getRole())
+                .orElseThrow(() -> new ErrorException("Role not found when add role to create user",
+                        ErrorCode.ERROR_MODEL_NOT_FOUND)));
 
         return userMapper.mapToResponse(userRepository.save(user));
     }
@@ -75,19 +82,30 @@ public class UserServiceImpl implements UserService {
     public UserResponse getUserById(Long id) {
         return userRepository.findById(id)
                 .map(userMapper::mapToResponse)
-                .orElseThrow(() -> new ErrorException("User not found with id: " + id, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(
+                        () -> new ErrorException("User not found with id: " + id, ErrorCode.ERROR_MODEL_NOT_FOUND));
     }
 
     @Override
-    public Page<UserResponse> getAllUsers(Pageable pageable) {
+    public Page<UserResponse> getPageUsers(Pageable pageable) {
         Page<User> userPage = userRepository.findAll(pageable);
         return userPage.map(userMapper::mapToResponse);
     }
 
     @Override
+    public List<UserResponse> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        if(users.isEmpty()){
+            throw new ErrorException("No users found", ErrorCode.ERROR_MODEL_NOT_FOUND);
+        }
+        return users.stream().map(userMapper::mapToResponse).toList();
+    }
+
+    @Override
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("User not found when delete user", ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(
+                        () -> new ErrorException("User not found when delete user", ErrorCode.ERROR_MODEL_NOT_FOUND));
         userRepository.delete(user);
     }
 
@@ -95,14 +113,16 @@ public class UserServiceImpl implements UserService {
     public UserResponse getUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .map(userMapper::mapToResponse)
-                .orElseThrow(() -> new ErrorException("User not found with email: " + email, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("User not found with email: " + email,
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
     }
 
     @Override
     public UserResponse getUserByUserName(String userName) {
         return userRepository.findByUsername(userName)
                 .map(userMapper::mapToResponse)
-                .orElseThrow(() -> new ErrorException("User not found with username: " + userName, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("User not found with username: " + userName,
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
     }
 
     @Override
@@ -114,38 +134,43 @@ public class UserServiceImpl implements UserService {
             throw new ErrorException("Username already exists", ErrorCode.ERROR_MODEL_ALREADY_EXISTS);
         }
 
-        if(!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
-            throw new ErrorException("Password and Confirm Password no match", ErrorCode.CONFIRM_PASSWORD_AND_PASSWORD_NOT_MATCH);
+        if (!registerRequest.getPassword().equals(registerRequest.getConfirmPassword())) {
+            throw new ErrorException("Password and Confirm Password no match",
+                    ErrorCode.CONFIRM_PASSWORD_AND_PASSWORD_NOT_MATCH);
         }
 
         User user = new User();
         user.setUsername(registerRequest.getUsername());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setEmail(registerRequest.getEmail());
-        user.setPhoneNumber(registerRequest.getPhoneNumber());
+        user.setPhone(registerRequest.getPhoneNumber());
         user.setFullName(registerRequest.getFullName());
         user.setIsActive(false); // User is not active by default
-        Set<Role> roles = new HashSet<>();
-        roles.add(roleRepository.findByName("User").orElseThrow(() -> new ErrorException("Role not found when add role to create user", ErrorCode.ERROR_MODEL_NOT_FOUND)));
-        user.setRoles(roles);
+        user.setRole(roleRepository.findByCode("USER")
+                .orElseThrow(() -> new ErrorException("Role not found when add role to create user",
+                        ErrorCode.ERROR_MODEL_NOT_FOUND)));
+
         return userMapper.mapToResponse(userRepository.save(user));
     }
 
     @Override
     public UserResponse updateUserAvatar(Long id, String avatarUrl) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("User not found when update avatar", ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(
+                        () -> new ErrorException("User not found when update avatar", ErrorCode.ERROR_MODEL_NOT_FOUND));
         user.setAvatarUrl(avatarUrl);
         return userMapper.mapToResponse(userRepository.save(user));
     }
 
     @Override
     public UserResponse updateUserPassword(Long id, UpdatePasswordRequest updatePasswordRequest) {
-        if(!updatePasswordRequest.getNewPassword().equals(updatePasswordRequest.getConfirmNewPassword())) {
-            throw new ErrorException("New Password and Confirm Password do not match", ErrorCode.CONFIRM_PASSWORD_AND_PASSWORD_NOT_MATCH);
+        if (!updatePasswordRequest.getNewPassword().equals(updatePasswordRequest.getConfirmNewPassword())) {
+            throw new ErrorException("New Password and Confirm Password do not match",
+                    ErrorCode.CONFIRM_PASSWORD_AND_PASSWORD_NOT_MATCH);
         }
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("User not found when update password", ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("User not found when update password",
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
         if (!passwordEncoder.matches(updatePasswordRequest.getOldPassword(), user.getPassword())) {
             throw new ErrorException("Old password does not match", ErrorCode.PASSWORD_NOT_MATCH);
         }
@@ -158,21 +183,22 @@ public class UserServiceImpl implements UserService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ErrorException("User not found when get user info", ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(
+                        () -> new ErrorException("User not found when get user info", ErrorCode.ERROR_MODEL_NOT_FOUND));
 
         return userMapper.mapToResponse(user);
     }
 
     @Override
-    public Boolean changePassword(String newPassword) {
+    public void changePassword(String newPassword) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ErrorException("User not found when change password", ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("User not found when change password",
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
 
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
-        return true;
     }
 
     @Override
@@ -180,53 +206,34 @@ public class UserServiceImpl implements UserService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ErrorException("User not found when update info", ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(
+                        () -> new ErrorException("User not found when update info", ErrorCode.ERROR_MODEL_NOT_FOUND));
 
         user.setEmail(userUpdateRequest.getEmail());
-        user.setPhoneNumber(userUpdateRequest.getPhoneNumber());
+        user.setPhone(userUpdateRequest.getPhoneNumber());
         user.setFullName(userUpdateRequest.getFullName());
+        user.setAddress(userUpdateRequest.getAddress());
+        user.setAvatarUrl(userUpdateRequest.getAvatarUrl());
 
         return userMapper.mapToResponse(userRepository.save(user));
     }
 
     @Override
-    public UserResponse addRolesToUser(Long id, List<String> roleName) {
+    public UserResponse changeRole(Long id, String role) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("User not found when add roles to user", ErrorCode.ERROR_MODEL_NOT_FOUND));
-        Set<Role> rolesToAdd = new HashSet<>();
-        for (String name : roleName) {
-            Role role = roleRepository.findByName(name)
-                    .orElseThrow(() -> new ErrorException("Role not found with name: " + name, ErrorCode.ERROR_MODEL_NOT_FOUND));
-            if (user.getRoles().contains(role)) {
-                throw new ErrorException("User already has this role: " + name, ErrorCode.ERROR_INVALID_REQUEST);
-            }
-            rolesToAdd.add(role);
-        }
-        user.getRoles().addAll(rolesToAdd);
-        return userMapper.mapToResponse(userRepository.save(user));
-    }
-
-    @Override
-    public UserResponse removeRolesFromUser(Long id, List<String> roleName) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("User not found when remove roles from user", ErrorCode.ERROR_MODEL_NOT_FOUND));
-        Set<Role> rolesToRemove = new HashSet<>();
-        for (String name : roleName) {
-            Role role = roleRepository.findByName(name)
-                    .orElseThrow(() -> new ErrorException("Role not found with name: " + name, ErrorCode.ERROR_MODEL_NOT_FOUND));
-            if (!user.getRoles().contains(role)) {
-                throw new ErrorException("User does not have this role: " + name, ErrorCode.ERROR_INVALID_REQUEST);
-            }
-            rolesToRemove.add(role);
-        }
-        user.getRoles().removeAll(rolesToRemove);
+                .orElseThrow(() -> new ErrorException("User not found when add roles to user",
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
+        user.setRole(roleRepository.findByCode(role)
+                .orElseThrow(() -> new ErrorException("Role not found when add role to create user",
+                        ErrorCode.ERROR_MODEL_NOT_FOUND)));
         return userMapper.mapToResponse(userRepository.save(user));
     }
 
     @Override
     public boolean activateUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("User not found when activate user", ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(
+                        () -> new ErrorException("User not found when activate user", ErrorCode.ERROR_MODEL_NOT_FOUND));
         if (user.getIsActive()) {
             throw new ErrorException("User is already active", ErrorCode.ERROR_INVALID_REQUEST);
         }
@@ -238,7 +245,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean deactivateUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("User not found when deactivate user", ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("User not found when deactivate user",
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
         if (!user.getIsActive()) {
             throw new ErrorException("User is already inactive", ErrorCode.ERROR_INVALID_REQUEST);
         }
@@ -255,8 +263,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public Page<UserResponse> getUsersByRole(String roleName, Pageable pageable) {
         Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new ErrorException("Role not found with name: " + roleName, ErrorCode.ERROR_MODEL_NOT_FOUND));
-        Page<User> userPage = userRepository.findByRolesContaining(role, pageable);
+                .orElseThrow(() -> new ErrorException("Role not found with name: " + roleName,
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
+        Page<User> userPage = userRepository.findByRoleContaining(role, pageable);
         return userPage.map(userMapper::mapToResponse);
     }
 }

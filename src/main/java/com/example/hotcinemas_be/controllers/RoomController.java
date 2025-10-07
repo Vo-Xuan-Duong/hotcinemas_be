@@ -1,7 +1,7 @@
 package com.example.hotcinemas_be.controllers;
 
-import com.example.hotcinemas_be.dtos.ResponseData;
-import com.example.hotcinemas_be.dtos.requests.RoomRequest;
+import com.example.hotcinemas_be.dtos.common.ResponseData;
+import com.example.hotcinemas_be.dtos.room.requests.RoomRequest;
 import com.example.hotcinemas_be.services.RoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,14 +23,14 @@ public class RoomController {
     @Operation(summary = "Get all rooms", description = "Retrieve a list of all rooms in the cinema system")
     @GetMapping
     public ResponseEntity<?> getAllRooms(Pageable pageable) {
-        try{
+        try {
             ResponseData<?> responseData = ResponseData.builder()
                     .status(200)
                     .message("Successfully retrieved all rooms")
-                    .data(roomService.getAllRooms(pageable))
+                    .data(roomService.getPageRooms(pageable))
                     .build();
             return ResponseEntity.ok(responseData);
-        }catch(Exception ex){
+        } catch (Exception ex) {
             return ResponseEntity.status(500).body("An error occurred while fetching rooms: " + ex.getMessage());
         }
     }
@@ -57,22 +57,23 @@ public class RoomController {
             ResponseData<?> responseData = ResponseData.builder()
                     .status(200)
                     .message("Successfully retrieved rooms for cinema ID: " + cinemaId)
-                    .data(roomService.getRoomsByCinemaId(cinemaId, pageable))
+                    .data(roomService.getPageRoomsByCinemaId(cinemaId, pageable))
                     .build();
             return ResponseEntity.ok(responseData);
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body("An error occurred while fetching rooms for cinema ID: " + ex.getMessage());
+            return ResponseEntity.status(500)
+                    .body("An error occurred while fetching rooms for cinema ID: " + ex.getMessage());
         }
     }
 
     @Operation(summary = "Create a new room", description = "Create a new room in the cinema system")
     @PostMapping("/cinema/{cinemaId}")
-    public ResponseEntity<?> createRoom(@PathVariable Long cinemaId,@RequestBody RoomRequest roomRequest) {
+    public ResponseEntity<?> createRoom(@PathVariable Long cinemaId, @RequestBody RoomRequest roomRequest) {
         try {
             ResponseData<?> responseData = ResponseData.builder()
                     .status(201)
                     .message("Successfully created a new room")
-                    .data(roomService.createRoom(cinemaId ,roomRequest))
+                    .data(roomService.createRoom(cinemaId, roomRequest))
                     .build();
             return ResponseEntity.status(201).body(responseData);
         } catch (Exception ex) {
@@ -121,9 +122,9 @@ public class RoomController {
                     .build();
             return ResponseEntity.ok(responseData);
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body("An error occurred while deleting rooms for cinema ID: " + ex.getMessage());
+            return ResponseEntity.status(500)
+                    .body("An error occurred while deleting rooms for cinema ID: " + ex.getMessage());
         }
     }
-
 
 }

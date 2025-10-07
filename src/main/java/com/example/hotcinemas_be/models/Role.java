@@ -21,8 +21,11 @@ public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "role_id")
-    private Long roleId;
+    @Column(name = "id")
+    private Long id;
+
+    @Column(name = "code", unique = true, nullable = false, length = 20)
+    private String code;
 
     @Column(name = "name", unique = true, nullable = false, length = 50)
     private String name;
@@ -33,11 +36,6 @@ public class Role {
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
-
-    // Relationships
-    @Builder.Default
-    @ManyToMany(mappedBy = "roles")
-    private Set<User> users = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER) // Often EAGER for permissions for quick access during auth
     @JoinTable(

@@ -1,37 +1,28 @@
 package com.example.hotcinemas_be.mappers;
 
-import com.example.hotcinemas_be.dtos.responses.UserResponse;
-import com.example.hotcinemas_be.models.Role;
+import com.example.hotcinemas_be.dtos.user.responses.UserResponse;
 import com.example.hotcinemas_be.models.User;
 import org.springframework.stereotype.Service;
 
-import java.util.stream.Collectors;
-
 @Service
 public class UserMapper {
-
-    private final RoleMapper roleMapper;
-
-    public UserMapper(RoleMapper roleMapper) {
-        this.roleMapper = roleMapper;
-    }
 
     public UserResponse mapToResponse(User user) {
         if (user == null) {
             return null;
         }
         return UserResponse.builder()
-                .userId(user.getUserId())
+                .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .password(user.getPassword())
                 .fullName(user.getFullName())
-                .phoneNumber(user.getPhoneNumber())
+                .phone(user.getPhone())
+                .address(user.getAddress())
                 .avatarUrl(user.getAvatarUrl())
                 .isActive(user.getIsActive())
-                .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
+                .role(user.getRole().getCode())
                 .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
                 .build();
     }
 }

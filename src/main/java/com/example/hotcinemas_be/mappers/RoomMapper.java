@@ -1,6 +1,6 @@
 package com.example.hotcinemas_be.mappers;
 
-import com.example.hotcinemas_be.dtos.responses.RoomResponse;
+import com.example.hotcinemas_be.dtos.room.responses.RoomResponse;
 import com.example.hotcinemas_be.models.Room;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +12,12 @@ public class RoomMapper {
         }
 
         return RoomResponse.builder()
-                .roomId(room.getRoomId())
-                .roomNumber(room.getRoomNumber())
-                .capacity(room.getCapacity())
+                .id(room.getId())
+                .name(room.getName())
                 .roomType(room.getRoomType().name()) // Assuming roomType is an enum
+                .rowsCount(room.getRowsCount())
+                .seatsPerRow(room.getSeatsPerRow())
+                .isActive(room.getIsActive())
                 .build();
     }
 }

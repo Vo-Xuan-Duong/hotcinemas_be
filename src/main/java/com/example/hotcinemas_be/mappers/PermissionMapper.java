@@ -1,6 +1,6 @@
 package com.example.hotcinemas_be.mappers;
 
-import com.example.hotcinemas_be.dtos.responses.PermissionResponse;
+import com.example.hotcinemas_be.dtos.permission.responses.PermissionResponse;
 import com.example.hotcinemas_be.models.Permission;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +12,9 @@ public class PermissionMapper {
             return null;
         }
         return PermissionResponse.builder()
-                .permissionId(permission.getPermissionId())
-                .permissionName(permission.getName())
+                .id(permission.getId())
+                .code(permission.getCode())
+                .name(permission.getName())
                 .description(permission.getDescription())
                 .isActive(permission.getIsActive())
                 .build();

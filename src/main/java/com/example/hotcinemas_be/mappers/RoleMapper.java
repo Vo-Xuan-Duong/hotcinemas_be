@@ -1,7 +1,7 @@
 package com.example.hotcinemas_be.mappers;
 
-import com.example.hotcinemas_be.dtos.responses.PermissionResponse;
-import com.example.hotcinemas_be.dtos.responses.RoleResponse;
+import com.example.hotcinemas_be.dtos.permission.responses.PermissionResponse;
+import com.example.hotcinemas_be.dtos.role.responses.RoleResponse;
 import com.example.hotcinemas_be.models.Role;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +20,11 @@ public class RoleMapper {
             return null;
         }
         return RoleResponse.builder()
-                .roleId(role.getRoleId())
-                .roleName(role.getName())
+                .id(role.getId())
+                .name(role.getName())
                 .description(role.getDescription())
                 .isActive(role.getIsActive())
-                .permissions(role.getPermissions().stream().map(permissionMapper::mapToResponse).
-                        collect(Collectors.toSet()))
+                .permissions(role.getPermissions().stream().map(permissionMapper::mapToResponse).toList())
                 .build();
     }
 }

@@ -1,23 +1,29 @@
 package com.example.hotcinemas_be.controllers;
 
-import com.example.hotcinemas_be.dtos.ResponseData;
-import com.example.hotcinemas_be.dtos.requests.LoginRequest;
-import com.example.hotcinemas_be.dtos.requests.NewPassword;
-import com.example.hotcinemas_be.dtos.requests.RegisterRequest;
+import com.example.hotcinemas_be.dtos.common.ResponseData;
+import com.example.hotcinemas_be.dtos.auth.requests.LoginRequest;
+import com.example.hotcinemas_be.dtos.user.requests.NewPassword;
+import com.example.hotcinemas_be.dtos.auth.requests.RegisterRequest;
 import com.example.hotcinemas_be.services.AuthService;
-import com.example.hotcinemas_be.services.UserService;
+import com.example.hotcinemas_be.jwts.JwtService;
+import com.example.hotcinemas_be.enums.TokenType;
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
+@Tag(name = "Authentication and Authorization", description = "APIs for user authentication and authorization")
 public class AuthController {
     private final AuthService authService;
+    private final JwtService jwtService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, JwtService jwtService) {
         this.authService = authService;
+        this.jwtService = jwtService;
     }
 
     @Operation(summary = "Login user", description = "Login user with email and password")
@@ -89,6 +95,57 @@ public class AuthController {
                 .message("Successfully logged out")
                 .build();
         return ResponseEntity.ok(responseData);
+    }
+
+    @Operation(summary = "Verify JWT token", description = "Verify access/refresh token validity and return basic claims")
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyToken(
+            @RequestParam(required = false) String token,
+            @RequestParam(defaultValue = "ACCESS") TokenType type,
+            HttpServletRequest request) {
+
+        if (token == null || token.isEmpty()) {
+            String header = request.getHeader("Authorization");
+            if (header != null && header.startsWith("Bearer ")) {
+                token = header.substring(7);
+            }
+        }
+
+        if (token == null || token.isEmpty()) {
+            ResponseData<?> error = ResponseData.builder()
+                    .status(400)
+                    .message("Token is required")
+                    .data(null)
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        try {
+            Claims claims = jwtService.extractClaims(token, type);
+            boolean expired = claims.getExpiration() != null && claims.getExpiration().before(new java.util.Date());
+            java.util.Map<String, Object> result = new java.util.HashMap<>();
+            result.put("valid", !expired);
+            result.put("type", type.name());
+            result.put("subject", claims.getSubject());
+            result.put("id", claims.getId());
+            result.put("issuer", claims.getIssuer());
+            result.put("issuedAt", claims.getIssuedAt());
+            result.put("expiration", claims.getExpiration());
+
+            ResponseData<?> responseData = ResponseData.builder()
+                    .status(200)
+                    .message(!expired ? "Token is valid" : "Token is expired")
+                    .data(result)
+                    .build();
+            return ResponseEntity.ok(responseData);
+        } catch (Exception ex) {
+            ResponseData<?> error = ResponseData.builder()
+                    .status(400)
+                    .message("Invalid token: " + ex.getMessage())
+                    .data(null)
+                    .build();
+            return ResponseEntity.badRequest().body(error);
+        }
     }
 
     @Operation(summary = "Forget password", description = "Send OTP to email for password reset")

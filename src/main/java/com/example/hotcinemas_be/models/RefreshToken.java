@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 @Builder
 public class RefreshToken {
     @Id
-    @Column(name = "token_id", unique = true, nullable = false, length = 100)
-    private String tokenId;
+    @Column(name = "id", unique = true, nullable = false, length = 100)
+    private String id;
 
     @Column(name = "token", nullable = false)
     private String token;

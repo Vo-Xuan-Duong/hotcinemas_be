@@ -1,7 +1,7 @@
 package com.example.hotcinemas_be.services.ServiceImpls;
 
-import com.example.hotcinemas_be.dtos.requests.CinemaRequest;
-import com.example.hotcinemas_be.dtos.responses.CinemaResponse;
+import com.example.hotcinemas_be.dtos.cinema.requests.CinemaRequest;
+import com.example.hotcinemas_be.dtos.cinema.responses.CinemaResponse;
 import com.example.hotcinemas_be.mappers.CinemaMapper;
 import com.example.hotcinemas_be.models.Cinema;
 import com.example.hotcinemas_be.repositorys.CinemaRepository;
@@ -9,10 +9,10 @@ import com.example.hotcinemas_be.services.CinemaService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class CinemaServiceImpl implements CinemaService {
 
     private final CinemaMapper cinemaMapper;
@@ -25,16 +25,25 @@ public class CinemaServiceImpl implements CinemaService {
 
     @Override
     public CinemaResponse createCinema(CinemaRequest cinemaRequest) {
-        Cinema cinema = new Cinema();
-        cinema.setName(cinemaRequest.getName());
-        cinema.setAddress(cinemaRequest.getAddress());
-        cinema.setPhoneNumber(cinemaRequest.getPhoneNumber());
-        cinema.setCity(cinemaRequest.getCity());
+        // Check if cinema with same name already exists
+        if (cinemaRepository.findByName(cinemaRequest.getName()).isPresent()) {
+            throw new RuntimeException("Cinema with name '" + cinemaRequest.getName() + "' already exists");
+        }
 
-        return cinemaMapper.mapToResponse(cinemaRepository.save(cinema));
+        Cinema cinema = Cinema.builder()
+                .name(cinemaRequest.getName())
+                .address(cinemaRequest.getAddress())
+                .phoneNumber(cinemaRequest.getPhoneNumber())
+                .city(cinemaRequest.getCity())
+                .isActive(true)
+                .build();
+
+        Cinema savedCinema = cinemaRepository.save(cinema);
+        return cinemaMapper.mapToResponse(savedCinema);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CinemaResponse getCinemaById(Long cinemaId) {
         Cinema cinema = cinemaRepository.findById(cinemaId)
                 .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + cinemaId));
@@ -47,54 +56,60 @@ public class CinemaServiceImpl implements CinemaService {
         Cinema cinema = cinemaRepository.findById(cinemaId)
                 .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + cinemaId));
 
+        // Check if another cinema with same name exists (excluding current cinema)
+        cinemaRepository.findByName(cinemaRequest.getName())
+                .ifPresent(existingCinema -> {
+                    if (!existingCinema.getId().equals(cinemaId)) {
+                        throw new RuntimeException("Cinema with name '" + cinemaRequest.getName() + "' already exists");
+                    }
+                });
+
         cinema.setName(cinemaRequest.getName());
         cinema.setAddress(cinemaRequest.getAddress());
         cinema.setPhoneNumber(cinemaRequest.getPhoneNumber());
         cinema.setCity(cinemaRequest.getCity());
 
-        return cinemaMapper.mapToResponse(cinemaRepository.save(cinema));
+        Cinema updatedCinema = cinemaRepository.save(cinema);
+        return cinemaMapper.mapToResponse(updatedCinema);
     }
 
     @Override
     public void deleteCinema(Long cinemaId) {
         Cinema cinema = cinemaRepository.findById(cinemaId)
                 .orElseThrow(() -> new RuntimeException("Cinema not found with id: " + cinemaId));
-        cinemaRepository.delete(cinema);
+
+        // Soft delete by setting isActive to false
+        cinema.setIsActive(false);
+        cinemaRepository.save(cinema);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CinemaResponse getCinemaByName(String name) {
-        Cinema cinema = cinemaRepository.findCinemaByName(name)
+        Cinema cinema = cinemaRepository.findByName(name)
                 .orElseThrow(() -> new RuntimeException("Cinema not found with name: " + name));
 
         return cinemaMapper.mapToResponse(cinema);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<CinemaResponse> getAllCinemas(Pageable pageable) {
-        Page<Cinema> cinemas = cinemaRepository.findAll(pageable);
+        Page<Cinema> cinemas = cinemaRepository.findByIsActiveTrue(pageable);
         return cinemas.map(cinemaMapper::mapToResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<CinemaResponse> searchCinemas(String keyword, Pageable pageable) {
-        Page<Cinema> cinemas = cinemaRepository.findAll(pageable);
-        return (Page<CinemaResponse>) cinemas.map(cinema -> {
-            if (cinema.getName().toLowerCase().contains(keyword.toLowerCase()) ||
-                cinema.getAddress().toLowerCase().contains(keyword.toLowerCase()) ||
-                cinema.getCity().toLowerCase().contains(keyword.toLowerCase())) {
-                return cinemaMapper.mapToResponse(cinema);
-            }
-            return null; // Filter out non-matching cinemas
-        }).filter(Objects::nonNull);
+        Page<Cinema> cinemas = cinemaRepository.searchCinemas(keyword, pageable);
+        return cinemas.map(cinemaMapper::mapToResponse);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<CinemaResponse> getCinemasByCity(String city, Pageable pageable) {
-        Page<Cinema> cinemas = cinemaRepository.findCinemasByCity(city, pageable);
-        if (cinemas.isEmpty()) {
-            throw new RuntimeException("No cinemas found in the city: " + city);
-        }
+        Page<Cinema> cinemas = cinemaRepository.findByCity(city, pageable);
         return cinemas.map(cinemaMapper::mapToResponse);
     }
 }

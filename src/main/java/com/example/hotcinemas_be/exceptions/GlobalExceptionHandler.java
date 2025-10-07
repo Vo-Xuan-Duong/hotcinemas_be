@@ -11,17 +11,18 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.example.hotcinemas_be.dtos.ResponseData;
+import com.example.hotcinemas_be.dtos.common.ResponseData;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
 @Slf4j
-public class GlobalExceptionHandler{
+public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -29,7 +30,7 @@ public class GlobalExceptionHandler{
             errors.put(fieldName, errorMessage);
         });
 
-        log.error("Validation exception occurred: {}", errors);
+        log.error("Validation exception at [{} {}] - errors: {}", request.getMethod(), request.getRequestURI(), errors);
         ResponseData<?> error = ResponseData.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .message("Validation failed")
@@ -37,14 +38,14 @@ public class GlobalExceptionHandler{
                 .path(request.getRequestURI())
                 .timestamp(LocalDateTime.now())
                 .build();
-        
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntimeException(RuntimeException ex, HttpServletRequest request) {
-        // Log the exception (optional)
-         log.error("Runtime exception occurred: {}", ex.getMessage(), ex);
+        log.error("Runtime exception at [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(),
+                ex);
         ResponseData<?> error = ResponseData.builder()
                 .status(500)
                 .message("An unexpected error occurred: " + ex.getMessage())
@@ -57,10 +58,9 @@ public class GlobalExceptionHandler{
 
     @ExceptionHandler(ErrorException.class)
     public ResponseEntity<?> handleErrorException(ErrorException ex, HttpServletRequest request) {
-        // Log the exception (optional)
         ErrorCode errorCode = ex.getErrorCode();
-
-        log.error("Error exception occurred: {}", ex.getMessage(), ex);
+        log.error("ErrorException at [{} {}] code={} message={}", request.getMethod(), request.getRequestURI(),
+                errorCode.getCode(), ex.getMessage(), ex);
         ResponseData<?> error = ResponseData.builder()
                 .status(errorCode.getHttpStatus().value())
                 .message(errorCode.getMessage())
@@ -69,5 +69,18 @@ public class GlobalExceptionHandler{
                 .build();
         // Return the error response with the specific status code
         return ResponseEntity.status(errorCode.getHttpStatus()).body(error);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleAnyException(Exception ex, HttpServletRequest request) {
+        log.error("Unhandled exception at [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(),
+                ex);
+        ResponseData<?> error = ResponseData.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .message("Internal server error")
+                .path(request.getRequestURI())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

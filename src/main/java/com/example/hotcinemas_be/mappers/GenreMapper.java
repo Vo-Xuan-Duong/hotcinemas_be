@@ -1,6 +1,6 @@
 package com.example.hotcinemas_be.mappers;
 
-import com.example.hotcinemas_be.dtos.responses.GenreResponse;
+import com.example.hotcinemas_be.dtos.genre.responses.GenreResponse;
 import com.example.hotcinemas_be.models.Genre;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ public class GenreMapper {
             return null;
         }
         return GenreResponse.builder()
-                .genreId(genre.getGenreId())
+                .id(genre.getId())
                 .name(genre.getName())
                 .build();
     }

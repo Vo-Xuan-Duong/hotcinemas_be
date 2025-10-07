@@ -1,7 +1,7 @@
 package com.example.hotcinemas_be.controllers;
 
-import com.example.hotcinemas_be.dtos.ResponseData;
-import com.example.hotcinemas_be.dtos.requests.PromotionRequest;
+import com.example.hotcinemas_be.dtos.common.ResponseData;
+import com.example.hotcinemas_be.dtos.promotion.requests.PromotionRequest;
 import com.example.hotcinemas_be.services.PromotionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

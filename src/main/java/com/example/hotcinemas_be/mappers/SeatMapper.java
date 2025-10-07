@@ -1,6 +1,6 @@
 package com.example.hotcinemas_be.mappers;
 
-import com.example.hotcinemas_be.dtos.responses.SeatResponse;
+import com.example.hotcinemas_be.dtos.seat.responses.SeatResponse;
 import com.example.hotcinemas_be.models.Seat;
 import org.springframework.stereotype.Service;
 
@@ -11,10 +11,14 @@ public class SeatMapper {
             return null;
         }
         return SeatResponse.builder()
-                .seatId(seat.getSeatId())
-                .rowNumber(seat.getRowNumber())
+                .id(seat.getId())
+                .rowLabel(seat.getRowLabel())
                 .seatNumber(seat.getSeatNumber())
-                .isPhysicalAvailable(seat.getIsPhysicalAvailable())
+                .seatType(seat.getSeatType())
+                .status(seat.getStatus())
+                .col(seat.getCol())
+                .row(seat.getRow())
+                .isActive(seat.getIsActive())
                 .build();
     }
 }

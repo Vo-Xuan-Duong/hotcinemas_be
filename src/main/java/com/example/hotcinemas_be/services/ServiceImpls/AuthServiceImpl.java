@@ -1,10 +1,10 @@
 package com.example.hotcinemas_be.services.ServiceImpls;
 
-import com.example.hotcinemas_be.dtos.requests.NewPassword;
-import com.example.hotcinemas_be.dtos.requests.LoginRequest;
-import com.example.hotcinemas_be.dtos.requests.RegisterRequest;
-import com.example.hotcinemas_be.dtos.responses.AuthResponse;
-import com.example.hotcinemas_be.dtos.responses.UserResponse;
+import com.example.hotcinemas_be.dtos.user.requests.NewPassword;
+import com.example.hotcinemas_be.dtos.auth.requests.LoginRequest;
+import com.example.hotcinemas_be.dtos.auth.requests.RegisterRequest;
+import com.example.hotcinemas_be.dtos.auth.responses.AuthResponse;
+import com.example.hotcinemas_be.dtos.user.responses.UserResponse;
 import com.example.hotcinemas_be.enums.TokenType;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
@@ -38,14 +38,14 @@ public class AuthServiceImpl implements AuthService {
     private final BlackListService blackListService;
 
     public AuthServiceImpl(UserRepository userRepository,
-                           JwtService jwtService,
-                           AuthenticationManager authenticationManager,
-                           UserDetailsService userDetailsService,
-                           UserService userService,
-                           RefreshTokenService  refreshTokenService,
-                           OTPService otpService,
-                           EmailService emailService,
-                           BlackListService blackListService) {
+            JwtService jwtService,
+            AuthenticationManager authenticationManager,
+            UserDetailsService userDetailsService,
+            UserService userService,
+            RefreshTokenService refreshTokenService,
+            OTPService otpService,
+            EmailService emailService,
+            BlackListService blackListService) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
@@ -59,15 +59,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse loginHandler(LoginRequest loginRequest) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsernameOrEmail(), loginRequest.getPassword()));
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getUsernameOrEmail(), loginRequest.getPassword()));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getUsernameOrEmail());
         if (userDetails == null) {
-            throw new AuthenticationException("User not found") {};
+            throw new AuthenticationException("User not found") {
+            };
         }
 
         String tokenId = UUID.randomUUID().toString();
-        String accessToken = jwtService.generateToken(TokenType.ACCESS, userDetails,tokenId);
+        String accessToken = jwtService.generateToken(TokenType.ACCESS, userDetails, tokenId);
         String refreshToken = jwtService.generateToken(TokenType.REFRESH, userDetails, tokenId);
 
         return AuthResponse.builder()
@@ -80,21 +82,20 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse refreshTokenHandler(String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
-            throw new ErrorException( "Refresh token is required", ErrorCode.ERROR_INVALID_TOKEN);
+            throw new ErrorException("Refresh token is required", ErrorCode.ERROR_INVALID_TOKEN);
         }
 
         refreshTokenService.deleteRefreshToken(refreshToken);
 
         String username = jwtService.extractUsername(refreshToken, TokenType.REFRESH);
         if (username == null) {
-            throw new ErrorException( "Refresh token is required", ErrorCode.ERROR_INVALID_TOKEN);
+            throw new ErrorException("Refresh token is required", ErrorCode.ERROR_INVALID_TOKEN);
         }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (userDetails == null) {
             throw new ErrorException("User not found for the provided refresh token", ErrorCode.ERROR_MODEL_NOT_FOUND);
         }
-
 
         String tokenId = UUID.randomUUID().toString();
         String newAccessToken = jwtService.generateToken(TokenType.ACCESS, userDetails, tokenId);
@@ -123,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Boolean verifyOTP(String email, String otpCode) {
-        if (!otpService.validateOTP(email , otpCode)) {
+        if (!otpService.validateOTP(email, otpCode)) {
             throw new ErrorException("Invalid OTP", ErrorCode.ERROR_INVALID_REQUEST);
         }
 
@@ -134,7 +135,6 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         return true;
     }
-
 
     @Override
     public void logoutHandler(String accessToken) {
@@ -150,7 +150,6 @@ public class AuthServiceImpl implements AuthService {
 
         blackListService.saveTokenToBlacklist(accessToken, tokenId);
     }
-
 
     @Override
     public Boolean forgetPassword(String email) {

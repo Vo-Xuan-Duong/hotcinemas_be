@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.hotcinemas_be.dtos.ResponseData;
+import com.example.hotcinemas_be.dtos.common.ResponseData;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +27,7 @@ public class HealthController {
                 .data("Server is healthy")
                 .timestamp(LocalDateTime.now())
                 .build();
-        
+
         return ResponseEntity.ok(responseData);
     }
 
@@ -40,7 +40,7 @@ public class HealthController {
                 .data("v1.0.0")
                 .timestamp(LocalDateTime.now())
                 .build();
-        
+
         return ResponseEntity.ok(responseData);
     }
 }

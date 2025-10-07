@@ -1,7 +1,9 @@
 package com.example.hotcinemas_be.models;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
@@ -32,8 +34,8 @@ public class Review {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "review_id")
-    private Long reviewId;
+    @Column(name = "id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "movie_id", nullable = false)
@@ -63,5 +65,5 @@ public class Review {
 
     @Builder.Default
     @OneToMany(mappedBy = "parentReview", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Review> replies = new HashSet<>(); // For replies
+    private List<Review> replies = new ArrayList<>(); // For replies
 }

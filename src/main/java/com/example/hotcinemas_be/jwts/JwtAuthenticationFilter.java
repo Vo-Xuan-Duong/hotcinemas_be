@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
         log.info("------------------------------------JWT_Filter_Internal----------------------------");
         String authorizationHeader = request.getHeader("Authorization");
         try {
@@ -60,18 +60,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             if(SecurityContextHolder.getContext().getAuthentication() == null) {
+
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+
                 log.info("UserDetails loaded for username: {}", userName);
+
                 if (jwtService.validateToken(tokenJwt, userDetails, TokenType.ACCESS)) {
+
                     String token = jwtService.extractId(tokenJwt, TokenType.ACCESS);
 
                     UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
                     authenticationToken.setDetails(token);
+
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
                     log.info("SecurityContextHolder updated with authentication for user: {}", userName);
+
                     filterChain.doFilter(request, response);
                 } else {
                     log.error("JWT Token is not valid for user: {}", userName);
+
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT Token is not valid");
                 }
 

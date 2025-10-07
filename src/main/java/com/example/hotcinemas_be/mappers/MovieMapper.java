@@ -1,6 +1,7 @@
 package com.example.hotcinemas_be.mappers;
 
-import com.example.hotcinemas_be.dtos.responses.MovieResponse;
+import com.example.hotcinemas_be.dtos.movie.responses.MovieResponse;
+import com.example.hotcinemas_be.dtos.movie.responses.MovieListItemResponse;
 import com.example.hotcinemas_be.models.Movie;
 import org.springframework.stereotype.Service;
 
@@ -18,24 +19,46 @@ public class MovieMapper {
         }
 
         return MovieResponse.builder()
-                .movieId(movie.getMovieId())
+                .id(movie.getId())
                 .title(movie.getTitle())
-                .director(movie.getDirector())
-                .genreResponse(movie.getGenres() != null ? movie.getGenres().stream().map(genreMapper::mapToResponse).toList() : null)
-                .synopsis(movie.getSynopsis())
-                .posterUrl(movie.getPosterUrl())
-                .backdropUrl(movie.getBackdropUrl())
-                .trailerUrl(movie.getTrailerUrl())
-                .releaseDate(movie.getReleaseDate() != null ? movie.getReleaseDate() : null)
+                .originalTitle(movie.getOriginalTitle())
+                .tagline(movie.getTagline())
+                .overview(movie.getOverview())
                 .durationMinutes(movie.getDurationMinutes())
-                .language(movie.getLanguage())
-                .country(movie.getCountry())
-                .casts(movie.getCasts())
-                .audioOptions(movie.getAudioOptions())
-                .ageLabel(movie.getAgeLabel())
-                .type(movie.getType())
+                .releaseDate(movie.getReleaseDate())
+                .originalLanguage(movie.getOriginalLanguage())
                 .format(movie.getFormat())
-                .rating(movie.getRating())
+                .ageRating(movie.getAgeRating())
+                .trailerUrl(movie.getTrailerUrl())
+                .posterPath(movie.getPosterPath())
+                .backdropPath(movie.getBackdropPath())
+                .genres(movie.getGenres() != null ? movie.getGenres().stream().map(genreMapper::mapToResponse).toList()
+                        : null)
+                .originCountry(movie.getOriginCountry())
+                .casts(movie.getCasts())
+                .voteAverage(movie.getVoteAverage())
+                .voteCount(movie.getVoteCount())
+                .isActive(movie.getIsActive())
+                .build();
+    }
+
+    public MovieListItemResponse mapToListItem(Movie movie) {
+        if (movie == null) {
+            return null;
+        }
+
+        return MovieListItemResponse.builder()
+                .id(movie.getId())
+                .title(movie.getTitle())
+                .releaseDate(movie.getReleaseDate())
+                .posterPath(movie.getPosterPath())
+                .backdropPath(movie.getBackdropPath())
+                .duration(movie.getDurationMinutes())
+                .format(movie.getFormat())
+                .genres(movie.getGenres() != null ? movie.getGenres().stream().map(genreMapper::mapToResponse).toList()
+                        : null)
+                .ageRating(movie.getAgeRating())
+                .voteAverage(movie.getVoteAverage())
                 .isActive(movie.getIsActive())
                 .build();
     }

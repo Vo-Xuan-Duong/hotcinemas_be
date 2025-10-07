@@ -1,6 +1,7 @@
 package com.example.hotcinemas_be.models;
 
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.example.hotcinemas_be.enums.SeatStatus;
@@ -33,8 +34,8 @@ public class ShowtimeSeat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "showtime_seat_id")
-    private Long showtimeSeatId;
+    @Column(name = "id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "showtime_id", nullable = false)
@@ -49,8 +50,11 @@ public class ShowtimeSeat {
     @Column(name = "status", nullable = false) // Use custom type
     private SeatStatus status = SeatStatus.AVAILABLE;
 
+    @Column(name = "price", nullable = false)
+    private BigDecimal price; // Price as String to accommodate various formats
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "held_by_user_id")
+    @JoinColumn(name = "user_id")
     private User heldByUser; // Nullable
 
     @Column(name = "held_until")
@@ -59,12 +63,4 @@ public class ShowtimeSeat {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id")
     private Booking booking; // Nullable, only if status is BOOKED
-
-    // For composite unique key
-    // @PrePersist
-    // @PreUpdate
-    // private void validateUniqueSeatShowtime() {
-    //     // This is a placeholder. Actual unique constraint is enforced by DB.
-    //     // JPA will throw an exception on flush if the unique constraint is violated.
-    // }
 }

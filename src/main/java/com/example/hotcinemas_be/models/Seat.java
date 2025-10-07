@@ -2,12 +2,12 @@ package com.example.hotcinemas_be.models;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
+import com.example.hotcinemas_be.enums.SeatStatus;
 import com.example.hotcinemas_be.enums.SeatType;
 
 import jakarta.persistence.CascadeType;
@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "seats")
@@ -40,46 +42,43 @@ public class Seat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "seat_id")
-    private Long seatId;
+    @Column(name = "id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id", nullable = false)
     private Room room;
 
-    @Column(name = "row_number", nullable = false, length = 5)
-    private String rowNumber;
+    @Column(name = "row_label", nullable = false)
+    private String rowLabel;
 
     @Column(name = "seat_number", nullable = false)
-    private Integer seatNumber;
+    private String seatNumber;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(name = "seat_type", nullable = false) // Use custom type
-    private SeatType seatType = SeatType.NORMAL; // Default to REGULAR
+    @Column(name = "seat_type", nullable = false)
+    private SeatType seatType = SeatType.NORMAL;
+
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private SeatStatus status;
+
+    @Column(name = "col", nullable = false)
+    private Integer col;
+
+    @Column(name = "row", nullable = false)
+    private Integer row;
 
     @Builder.Default
-    @Column(name = "price_multiplier", nullable = false)
-    private BigDecimal priceMultiplier = BigDecimal.ZERO; // DECIMAL(3,2) in DB, Double in Java
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
 
-    @Builder.Default
-    @Column(name = "is_physical_available", nullable = false)
-    private Boolean isPhysicalAvailable = true;
-
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    // Relationships
-    @Builder.Default
-    @OneToMany(mappedBy = "seat", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ShowtimeSeat> showtimeSeats = new HashSet<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "seat", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Ticket> tickets = new HashSet<>(); // Direct link for confirmed tickets
 }

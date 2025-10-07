@@ -1,11 +1,18 @@
 package com.example.hotcinemas_be.controllers;
 
-import com.example.hotcinemas_be.dtos.ResponseData;
-import com.example.hotcinemas_be.dtos.requests.CinemaRequest;
+import com.example.hotcinemas_be.dtos.common.ResponseData;
+import com.example.hotcinemas_be.dtos.cinema.requests.CinemaRequest;
+import com.example.hotcinemas_be.dtos.cinema.responses.CinemaResponse;
 import com.example.hotcinemas_be.services.CinemaService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,100 +29,212 @@ public class CinemaController {
     }
 
     @Operation(summary = "Create a new cinema", description = "This endpoint allows an admin to create a new cinema.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Cinema created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data"),
+            @ApiResponse(responseCode = "409", description = "Cinema with this name already exists")
+    })
     @PostMapping
-    public ResponseEntity<?> createCinema(@RequestBody CinemaRequest cinemaRequest) {
+    public ResponseEntity<ResponseData<CinemaResponse>> createCinema(
+            @Valid @RequestBody CinemaRequest cinemaRequest) {
         try {
-            ResponseData<?> responseData = ResponseData.builder()
-                    .status(201)
+            CinemaResponse cinemaResponse = cinemaService.createCinema(cinemaRequest);
+            ResponseData<CinemaResponse> responseData = ResponseData.<CinemaResponse>builder()
+                    .status(HttpStatus.CREATED.value())
                     .message("Cinema has been successfully created")
-                    .data(cinemaService.createCinema(cinemaRequest))
+                    .data(cinemaResponse)
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.status(HttpStatus.CREATED).body(responseData);
+        } catch (RuntimeException ex) {
+            ResponseData<CinemaResponse> errorResponse = ResponseData.<CinemaResponse>builder()
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message(ex.getMessage())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @Operation(summary = "Get all cinemas", description = "This endpoint retrieves all active cinemas with pagination.")
+    @GetMapping
+    public ResponseEntity<ResponseData<Page<CinemaResponse>>> getAllCinemas(
+            @Parameter(description = "Pagination parameters") Pageable pageable) {
+        try {
+            Page<CinemaResponse> cinemas = cinemaService.getAllCinemas(pageable);
+            ResponseData<Page<CinemaResponse>> responseData = ResponseData.<Page<CinemaResponse>>builder()
+                    .status(HttpStatus.OK.value())
+                    .message("Cinemas retrieved successfully")
+                    .data(cinemas)
                     .timestamp(LocalDateTime.now())
                     .build();
             return ResponseEntity.ok(responseData);
         } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
-        }
-    }
-
-    @Operation(summary = "Get all cinemas", description = "This endpoint retrieves all cinemas.")
-    @GetMapping
-    public ResponseEntity<?> getAllCinemas(Pageable pageable) {
-        try {
-            ResponseData<?> responseData = ResponseData.builder()
-                    .status(200)
-                    .message("Cinemas retrieved successfully")
-                    .data(cinemaService.getAllCinemas(pageable))
+            ResponseData<Page<CinemaResponse>> errorResponse = ResponseData.<Page<CinemaResponse>>builder()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .message("Error retrieving cinemas: " + ex.getMessage())
                     .timestamp(LocalDateTime.now())
                     .build();
-            return ResponseEntity.ok(responseData);
-        }catch (Exception ex){
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
     @Operation(summary = "Get a cinema by ID", description = "This endpoint retrieves a cinema by its ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cinema found"),
+            @ApiResponse(responseCode = "404", description = "Cinema not found")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCinemaById(@PathVariable Long id) {
+    public ResponseEntity<ResponseData<CinemaResponse>> getCinemaById(
+            @Parameter(description = "Cinema ID") @PathVariable Long id) {
         try {
-            ResponseData<?> responseData = ResponseData.builder()
-                    .status(200)
+            CinemaResponse cinema = cinemaService.getCinemaById(id);
+            ResponseData<CinemaResponse> responseData = ResponseData.<CinemaResponse>builder()
+                    .status(HttpStatus.OK.value())
                     .message("Cinema retrieved successfully")
-                    .data(cinemaService.getCinemaById(id))
+                    .data(cinema)
                     .timestamp(LocalDateTime.now())
                     .build();
             return ResponseEntity.ok(responseData);
-        } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (RuntimeException ex) {
+            ResponseData<CinemaResponse> errorResponse = ResponseData.<CinemaResponse>builder()
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .message(ex.getMessage())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 
     @Operation(summary = "Update a cinema", description = "This endpoint allows an admin to update an existing cinema.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cinema updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Cinema not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCinema(@PathVariable Long id, @RequestBody CinemaRequest cinemaRequest) {
+    public ResponseEntity<ResponseData<CinemaResponse>> updateCinema(
+            @Parameter(description = "Cinema ID") @PathVariable Long id,
+            @Valid @RequestBody CinemaRequest cinemaRequest) {
         try {
-            ResponseData<?> responseData = ResponseData.builder()
-                    .status(200)
+            CinemaResponse cinemaResponse = cinemaService.updateCinema(id, cinemaRequest);
+            ResponseData<CinemaResponse> responseData = ResponseData.<CinemaResponse>builder()
+                    .status(HttpStatus.OK.value())
                     .message("Cinema has been successfully updated")
-                    .data(cinemaService.updateCinema(id, cinemaRequest))
+                    .data(cinemaResponse)
                     .timestamp(LocalDateTime.now())
                     .build();
             return ResponseEntity.ok(responseData);
-        } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (RuntimeException ex) {
+            ResponseData<CinemaResponse> errorResponse = ResponseData.<CinemaResponse>builder()
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message(ex.getMessage())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.badRequest().body(errorResponse);
         }
     }
 
-    @Operation(summary = "Delete a cinema", description = "This endpoint allows an admin to delete a cinema by its ID.")
+    @Operation(summary = "Partially update a cinema", description = "This endpoint allows an admin to partially update an existing cinema.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cinema partially updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Cinema not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
+    @PatchMapping("/{id}")
+    public ResponseEntity<ResponseData<CinemaResponse>> partialUpdateCinema(
+            @Parameter(description = "Cinema ID") @PathVariable Long id,
+            @RequestBody CinemaRequest cinemaRequest) {
+        try {
+            CinemaResponse cinemaResponse = cinemaService.updateCinema(id, cinemaRequest);
+            ResponseData<CinemaResponse> responseData = ResponseData.<CinemaResponse>builder()
+                    .status(HttpStatus.OK.value())
+                    .message("Cinema has been partially updated")
+                    .data(cinemaResponse)
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.ok(responseData);
+        } catch (RuntimeException ex) {
+            ResponseData<CinemaResponse> errorResponse = ResponseData.<CinemaResponse>builder()
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message(ex.getMessage())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    @Operation(summary = "Delete a cinema", description = "This endpoint allows an admin to soft delete a cinema by its ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Cinema deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Cinema not found")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCinema(@PathVariable Long id) {
+    public ResponseEntity<ResponseData<Void>> deleteCinema(
+            @Parameter(description = "Cinema ID") @PathVariable Long id) {
         try {
             cinemaService.deleteCinema(id);
-            ResponseData<?> responseData = ResponseData.builder()
-                    .status(200)
+            ResponseData<Void> responseData = ResponseData.<Void>builder()
+                    .status(HttpStatus.OK.value())
                     .message("Cinema has been successfully deleted")
                     .timestamp(LocalDateTime.now())
                     .build();
             return ResponseEntity.ok(responseData);
-        } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+        } catch (RuntimeException ex) {
+            ResponseData<Void> errorResponse = ResponseData.<Void>builder()
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .message(ex.getMessage())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
     }
 
-    @Operation(summary = "Get all cinemas by city", description = "This endpoint retrieves all cinemas in a specific city.")
+    @Operation(summary = "Get cinemas by city", description = "This endpoint retrieves all cinemas in a specific city.")
     @GetMapping("/city/{city}")
-    public ResponseEntity<?> getCinemasByCity(@PathVariable String city, Pageable pageable) {
+    public ResponseEntity<ResponseData<Page<CinemaResponse>>> getCinemasByCity(
+            @Parameter(description = "City name") @PathVariable String city,
+            @Parameter(description = "Pagination parameters") Pageable pageable) {
         try {
-            ResponseData<?> responseData = ResponseData.builder()
-                    .status(200)
+            Page<CinemaResponse> cinemas = cinemaService.getCinemasByCity(city, pageable);
+            ResponseData<Page<CinemaResponse>> responseData = ResponseData.<Page<CinemaResponse>>builder()
+                    .status(HttpStatus.OK.value())
                     .message("Cinemas in " + city + " retrieved successfully")
-                    .data(cinemaService.getCinemasByCity(city, pageable))
+                    .data(cinemas)
                     .timestamp(LocalDateTime.now())
                     .build();
             return ResponseEntity.ok(responseData);
         } catch (Exception ex) {
-            return ResponseEntity.badRequest().body(ex.getMessage());
+            ResponseData<Page<CinemaResponse>> errorResponse = ResponseData.<Page<CinemaResponse>>builder()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .message("Error retrieving cinemas: " + ex.getMessage())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 
-
+    @Operation(summary = "Search cinemas", description = "This endpoint searches cinemas by keyword.")
+    @GetMapping("/search")
+    public ResponseEntity<ResponseData<Page<CinemaResponse>>> searchCinemas(
+            @Parameter(description = "Search keyword") @RequestParam String keyword,
+            @Parameter(description = "Pagination parameters") Pageable pageable) {
+        try {
+            Page<CinemaResponse> cinemas = cinemaService.searchCinemas(keyword, pageable);
+            ResponseData<Page<CinemaResponse>> responseData = ResponseData.<Page<CinemaResponse>>builder()
+                    .status(HttpStatus.OK.value())
+                    .message("Search results for '" + keyword + "' retrieved successfully")
+                    .data(cinemas)
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.ok(responseData);
+        } catch (Exception ex) {
+            ResponseData<Page<CinemaResponse>> errorResponse = ResponseData.<Page<CinemaResponse>>builder()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .message("Error searching cinemas: " + ex.getMessage())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
 }

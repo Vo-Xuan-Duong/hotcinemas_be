@@ -9,9 +9,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -23,16 +23,22 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
 
-        Set<GrantedAuthority> authorities = user.getRoles().stream()
-                .flatMap(role -> Stream.concat(
-                        Stream.of(new SimpleGrantedAuthority("ROLE_" + role.getName())), // Thêm vai trò với tiền tố "ROLE_"
-                        role.getPermissions().stream()
-                                .map(permission -> new SimpleGrantedAuthority(permission.getName())) // Thêm quyền hạn
-                ))
-                .collect(Collectors.toSet());
+        User user = userRepository.findByUsername(usernameOrEmail)
+                .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
+                        .orElseThrow(() -> new UsernameNotFoundException(usernameOrEmail)));
+
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        // Thêm vai trò với tiền tố "ROLE_"
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+
+        // Lấy permissions từ role của user
+        if (user.getRole() != null && user.getRole().getPermissions() != null) {
+            authorities.addAll(user.getRole().getPermissions().stream()
+                    .map(permission -> new SimpleGrantedAuthority(permission.getCode()))
+                    .collect(Collectors.toSet()));
+        }
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getUsername())

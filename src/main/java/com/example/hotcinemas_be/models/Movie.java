@@ -1,103 +1,113 @@
 package com.example.hotcinemas_be.models;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.example.hotcinemas_be.enums.AudioOption;
+import com.example.hotcinemas_be.enums.MovieStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Entity
 @Table(name = "movies")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
 public class Movie {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "movie_id")
-    private Long movieId;
+    private Long id;
 
+    // ====== Basic ======
+    @NotBlank
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "director", length = 100)
-    private String director;
+    @Column(name = "original_title", length = 200)
+    private String originalTitle;
 
+    @Column(name = "tagline", length = 300)
+    private String tagline;
+
+    @Column(name = "overview", columnDefinition = "TEXT")
+    private String overview;
+
+    @Positive
+    @Column(name = "duration_minutes", nullable = false)
+    private Integer durationMinutes;
+
+    @Column(name = "release_date")
+    private LocalDate releaseDate;
+
+    @Column(name = "original_language", length = 50)
+    private String originalLanguage;
+
+    @Column(name = "format", length = 100)
+    private String format; // 2D, 3D, IMAX, 4DX, ...
+
+    @Column(name = "age_rating", length = 100)
+    private String ageRating;
+
+    // ====== Flags / status / metrics ======
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 50)
+    private MovieStatus status;
+
+    @DecimalMin("0.0") @DecimalMax("10.0")
+    @Column(name = "vote_average", precision = 4, scale = 3)
+    private BigDecimal voteAverage;
+
+    @Column(name = "vote_count")
+    private Integer voteCount;
+
+    // ====== Media (lưu URL hoặc path) ======
+    @Column(name = "trailer_url", length = 500)
+    private String trailerUrl;
+    // Nếu bạn muốn lưu "path" từ TMDB để tự build URL ở FE:
+    @Column(name = "poster_path", length = 300)
+    private String posterPath;
+
+    @Column(name = "backdrop_path", length = 300)
+    private String backdropPath;
+
+    // ====== Relationships ======
     @Builder.Default
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "movie_genres",
             joinColumns = @JoinColumn(name = "movie_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
-    private Set<Genre> genres = new HashSet<>();
+    private List<Genre> genres = new ArrayList<>();
 
-    @Column(name = "synopsis", columnDefinition = "TEXT")
-    private String synopsis;
+    // Quốc gia nguồn (origin_country[] từ payload)
+    @Builder.Default
+    @Column(name = "country_code", length = 10)
+    private List<String> originCountry = new ArrayList<>();
 
-    @Column(name = "poster_url", length = 500)
-    private String posterUrl;
+    // Dàn diễn viên đơn giản (nếu cần name + role + order => làm entity riêng)
+    @Builder.Default
+    @Column(name = "cast_name", length = 150)
+    private List<String> casts = new ArrayList<>();
 
-    @Column(name = "backdrop_url", length = 500)
-    private String backdropUrl;
+    @Builder.Default
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Review> reviews = new ArrayList<>();
 
-    @Column(name = "trailer_url", length = 500)
-    private String trailerUrl;
-
-    @Column(name = "release_date")
-    private LocalDateTime releaseDate;
-
-    @Column(name = "duration_minutes", nullable = false)
-    private Integer durationMinutes;
-
-    @Column(name = "language", length = 50)
-    private String language;
-
-    @Column(name = "country", length = 50)
-    private String country;
-
-    @Column(name = "casts")
-    private List<String> casts;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "audio_options") // Use custom type
-    private List<AudioOption> audioOptions;
-
-    @Column(name = "age_lable", length = 100)
-    private String ageLabel;
-
-    @Column(name = "type", length = 50)
-    private String type;
-
-    @Column(name = "format", length = 50)
-    private String format;
-
-    @Column(name = "rating")
-    private Double rating;
-
+    // ====== Status ======
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
-    private Boolean isActive;
+    private Boolean isActive = true;
 
     @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Review> reviews = new HashSet<>(); // New relationship
 }

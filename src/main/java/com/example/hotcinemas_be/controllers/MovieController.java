@@ -1,11 +1,12 @@
 package com.example.hotcinemas_be.controllers;
 
-import com.example.hotcinemas_be.dtos.ResponseData;
-import com.example.hotcinemas_be.dtos.requests.MovieRequest;
+import com.example.hotcinemas_be.dtos.common.ResponseData;
+import com.example.hotcinemas_be.dtos.movie.requests.MovieRequest;
 import com.example.hotcinemas_be.services.MovieService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,14 +25,14 @@ public class MovieController {
     @Operation(summary = "Get all movies", description = "Retrieve a list of all movies in the cinema system")
     @GetMapping
     public ResponseEntity<?> getAllMovies(Pageable pageable) {
-        try{
+        try {
             ResponseData<?> responseData = ResponseData.builder()
                     .status(200)
                     .message("Successfully retrieved all movies in the cinema system")
                     .data(movieService.getAllMovies(pageable))
                     .build();
             return ResponseEntity.status(200).body(responseData);
-        }catch(Exception ex){
+        } catch (Exception ex) {
             return ResponseEntity.status(500).body("An error occurred while fetching movies: " + ex.getMessage());
         }
     }
@@ -62,13 +63,14 @@ public class MovieController {
                     .build();
             return ResponseEntity.ok(responseData);
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body("An error occurred while fetching movies by genre: " + ex.getMessage());
+            return ResponseEntity.status(500)
+                    .body("An error occurred while fetching movies by genre: " + ex.getMessage());
         }
     }
 
     @Operation(summary = "Get movies coming soon", description = "Retrieve a list of movies that are coming soon to the cinema")
     @GetMapping("/coming-soon")
-    public ResponseEntity<?> getComingSoonMovies(Pageable pageable) {
+    public ResponseEntity<?> getComingSoonMovies(@PageableDefault(size = 10, page = 0, sort = "releaseDate") Pageable pageable) {
         try {
             ResponseData<?> responseData = ResponseData.builder()
                     .status(200)
@@ -77,13 +79,14 @@ public class MovieController {
                     .build();
             return ResponseEntity.ok(responseData);
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body("An error occurred while fetching coming soon movies: " + ex.getMessage());
+            return ResponseEntity.status(500)
+                    .body("An error occurred while fetching coming soon movies: " + ex.getMessage());
         }
     }
 
     @Operation(summary = "Get movies now showing", description = "Retrieve a list of movies that are currently showing in the cinema")
     @GetMapping("/now-showing")
-    public ResponseEntity<?> getNowShowingMovies(Pageable pageable) {
+    public ResponseEntity<?> getNowShowingMovies(@PageableDefault(size = 10, page = 0, sort = "releaseDate") Pageable pageable) {
         try {
             ResponseData<?> responseData = ResponseData.builder()
                     .status(200)
@@ -92,7 +95,24 @@ public class MovieController {
                     .build();
             return ResponseEntity.ok(responseData);
         } catch (Exception ex) {
-            return ResponseEntity.status(500).body("An error occurred while fetching now showing movies: " + ex.getMessage());
+            return ResponseEntity.status(500)
+                    .body("An error occurred while fetching now showing movies: " + ex.getMessage());
+        }
+    }
+
+    @Operation(summary = "Get top rated movies", description = "Retrieve a list of the highest rated movies")
+    @GetMapping("/top-rated")
+    public ResponseEntity<?> getTopRatedMovies(@PageableDefault(size = 10, page = 0, sort = "releaseDate") Pageable pageable) {
+        try {
+            ResponseData<?> responseData = ResponseData.builder()
+                    .status(200)
+                    .message("Successfully retrieved top rated movies")
+                    .data(movieService.getTopRatedMovies(pageable))
+                    .build();
+            return ResponseEntity.ok(responseData);
+        } catch (Exception ex) {
+            return ResponseEntity.status(500)
+                    .body("An error occurred while fetching top rated movies: " + ex.getMessage());
         }
     }
 
@@ -102,13 +122,12 @@ public class MovieController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String genre,
             @RequestParam(required = false) String language,
-            @RequestParam(required = false) String country,
             Pageable pageable) {
         try {
             ResponseData<?> responseData = ResponseData.builder()
                     .status(200)
                     .message("Successfully retrieved search results")
-                    .data(movieService.searchMovies(keyword, genre, language, country, pageable))
+                    .data(movieService.searchMovies(keyword, genre, language, pageable))
                     .build();
             return ResponseEntity.ok(responseData);
         } catch (Exception ex) {

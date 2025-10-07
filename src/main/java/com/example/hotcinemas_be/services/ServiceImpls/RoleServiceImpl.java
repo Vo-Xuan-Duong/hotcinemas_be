@@ -1,7 +1,7 @@
 package com.example.hotcinemas_be.services.ServiceImpls;
 
-import com.example.hotcinemas_be.dtos.requests.RoleRequest;
-import com.example.hotcinemas_be.dtos.responses.RoleResponse;
+import com.example.hotcinemas_be.dtos.role.requests.RoleRequest;
+import com.example.hotcinemas_be.dtos.role.responses.RoleResponse;
 import com.example.hotcinemas_be.mappers.RoleMapper;
 import com.example.hotcinemas_be.models.Permission;
 import com.example.hotcinemas_be.models.Role;
@@ -21,8 +21,8 @@ public class RoleServiceImpl implements RoleService {
     private final PermissionRepository permissionRepository;
 
     public RoleServiceImpl(RoleRepository roleRepository,
-                           RoleMapper roleMapper,
-                           PermissionRepository permissionRepository) {
+            RoleMapper roleMapper,
+            PermissionRepository permissionRepository) {
         this.roleRepository = roleRepository;
         this.roleMapper = roleMapper;
         this.permissionRepository = permissionRepository;
@@ -63,32 +63,38 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public RoleResponse getRoleByName(String roleName) {
-        Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new RuntimeException("Role not found with name: " + roleName));
+    public RoleResponse getRoleByCode(String code) {
+        Role role = roleRepository.findByCode(code)
+                .orElseThrow(() -> new RuntimeException("Role not found with name: " + code));
         return roleMapper.mapToResponse(role);
     }
 
     @Override
-    public Page<RoleResponse> getAllRoles(Pageable pageable) {
+    public Page<RoleResponse> getPageRoles(Pageable pageable) {
         Page<Role> roles = roleRepository.findAll(pageable);
         return roles.map(roleMapper::mapToResponse);
     }
 
     @Override
-    public RoleResponse activateRole(Long roleId) {
-        Role role = roleRepository.findById(roleId)
-                .orElseThrow(() -> new RuntimeException("Role not found with id: " + roleId));
-        role.setIsActive(true);
-        return roleMapper.mapToResponse(roleRepository.save(role));
+    public List<RoleResponse> getAllRoles() {
+        List<Role> roles = roleRepository.findAll();
+        return roles.stream().map(roleMapper::mapToResponse).toList();
     }
 
     @Override
-    public RoleResponse deactivateRole(Long roleId) {
+    public void activateRole(Long roleId) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new RuntimeException("Role not found with id: " + roleId));
+        role.setIsActive(true);
+        roleRepository.save(role);
+    }
+
+    @Override
+    public void deactivateRole(Long roleId) {
         Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new RuntimeException("Role not found with id: " + roleId));
         role.setIsActive(false);
-        return roleMapper.mapToResponse(roleRepository.save(role));
+        roleRepository.save(role);
     }
 
     @Override

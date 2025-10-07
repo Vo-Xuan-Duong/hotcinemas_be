@@ -3,7 +3,9 @@ package com.example.hotcinemas_be.models;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.example.hotcinemas_be.enums.DiscountType;
@@ -34,18 +36,14 @@ public class Promotion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "promotion_id")
-    private Long promotionId;
+    @Column(name = "id")
+    private Long id;
 
     @Column(name = "code", unique = true, nullable = false, length = 50)
     private String code;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
-
-    @Enumerated(EnumType.STRING) // Map ENUM to String in DB
-    @Column(name = "discount_type", nullable = false) // Use custom type
-    private DiscountType discountType;
 
     @Column(name = "discount_value", nullable = false)
     private BigDecimal discountValue; // DECIMAL(5,2) in DB, Double in Java
@@ -72,5 +70,5 @@ public class Promotion {
     // Relationships
     @Builder.Default
     @ManyToMany(mappedBy = "promotions")
-    private Set<Booking> bookings = new HashSet<>();
+    private List<Booking> bookings = new ArrayList<>();
 }

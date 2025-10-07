@@ -1,7 +1,7 @@
 package com.example.hotcinemas_be.controllers;
 
-import com.example.hotcinemas_be.dtos.ResponseData;
-import com.example.hotcinemas_be.dtos.requests.ShowtimeRequest;
+import com.example.hotcinemas_be.dtos.common.ResponseData;
+import com.example.hotcinemas_be.dtos.showtime.requests.ShowtimeRequest;
 import com.example.hotcinemas_be.services.ShowtimeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/api/v1/showtimes")
-@Tag(name = "Showtime Management", description = "APIs for managing showtimes")
+@RequestMapping("/api/v1/showtime")
+@Tag(name = "Showtime Management", description = "APIs for managing showtime in the cinema system")
 public class ShowtimeController {
     private final ShowtimeService showtimeService;
 
@@ -22,17 +22,17 @@ public class ShowtimeController {
     }
 
     @Operation(summary = "Create a new showtime", description = "Creates a new showtime for a movie in a specific cinema hall.")
-    @PostMapping("/room/{roomId}")
-    public ResponseEntity<?> createShowtime(@PathVariable Long roomId,@RequestBody ShowtimeRequest showtimeRequest) {
-        try{
+    @PostMapping()
+    public ResponseEntity<?> createShowtime(@RequestBody ShowtimeRequest showtimeRequest) {
+        try {
             ResponseData<?> responseData = ResponseData.builder()
                     .status(201)
                     .message("Showtime created successfully")
-                    .data(showtimeService.createShowtime(roomId, showtimeRequest))
+                    .data(showtimeService.createShowtime(showtimeRequest))
                     .timestamp(LocalDateTime.now())
                     .build();
             return ResponseEntity.status(201).body(responseData);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             return ResponseEntity.badRequest().body("Error creating showtime: " + ex.getMessage());
         }
     }

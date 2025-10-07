@@ -1,5 +1,6 @@
 package com.example.hotcinemas_be.models;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,6 +16,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "genres")
@@ -26,15 +29,16 @@ import lombok.Setter;
 public class Genre {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "genre_id")
-    private Long genreId;
+    @Column(name = "id")
+    private Long id;
 
     @Column(name = "name", unique = true, nullable = false, length = 50)
     private String name;
 
-    // Relationships
-    @Builder.Default
-    @ManyToMany(mappedBy = "genres")
-    private Set<Movie> movies = new HashSet<>();
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

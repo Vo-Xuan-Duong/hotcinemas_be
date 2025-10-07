@@ -1,7 +1,7 @@
 package com.example.hotcinemas_be.services.ServiceImpls;
 
-import com.example.hotcinemas_be.dtos.requests.PromotionRequest;
-import com.example.hotcinemas_be.dtos.responses.PromotionResponse;
+import com.example.hotcinemas_be.dtos.promotion.requests.PromotionRequest;
+import com.example.hotcinemas_be.dtos.promotion.responses.PromotionResponse;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
 import com.example.hotcinemas_be.mappers.PromotionMapper;
@@ -21,7 +21,7 @@ public class PromotionServiceImpl implements PromotionService {
     private final PromotionMapper promotionMapper;
 
     public PromotionServiceImpl(PromotionRepository promotionRepository,
-                                PromotionMapper promotionMapper) {
+            PromotionMapper promotionMapper) {
         this.promotionRepository = promotionRepository;
         this.promotionMapper = promotionMapper;
     }
@@ -34,7 +34,6 @@ public class PromotionServiceImpl implements PromotionService {
         promotion.setQuantity(promotionRequest.getQuantity());
         promotion.setStartDate(promotionRequest.getStartDate());
         promotion.setEndDate(promotionRequest.getEndDate());
-        promotion.setDiscountType(promotionRequest.getDiscountType());
         promotion.setDiscountValue(BigDecimal.valueOf(promotionRequest.getDiscountValue()));
 
         return promotionMapper.mapToResponse(promotionRepository.save(promotion));
@@ -43,17 +42,18 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     public PromotionResponse getPromotionById(Long id) {
         Promotion promotion = promotionRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id,
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
         return promotionMapper.mapToResponse(promotion);
     }
 
     @Override
     public PromotionResponse updatePromotion(Long id, PromotionRequest promotionRequest) {
         Promotion promotion = promotionRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id,
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
         promotion.setCode(promotionRequest.getCode());
         promotion.setDescription(promotionRequest.getDescription());
-        promotion.setDiscountType(promotionRequest.getDiscountType());
         promotion.setQuantity(promotionRequest.getQuantity());
         promotion.setDiscountValue(BigDecimal.valueOf(promotionRequest.getDiscountValue()));
         promotion.setStartDate(promotionRequest.getStartDate());
@@ -65,14 +65,16 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     public void deletePromotion(Long id) {
         Promotion promotion = promotionRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id,
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
         promotionRepository.delete(promotion);
     }
 
     @Override
     public PromotionResponse getPromotionByCode(String code) {
         Promotion promotion = promotionRepository.findPromotionByCode(code)
-                .orElseThrow(() -> new ErrorException("Promotion not found with code: " + code, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("Promotion not found with code: " + code,
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
         return promotionMapper.mapToResponse(promotion);
     }
 
@@ -80,7 +82,7 @@ public class PromotionServiceImpl implements PromotionService {
     public Page<PromotionResponse> getAllPromotions(Pageable pageable) {
         Page<Promotion> promotions = promotionRepository.findAll(pageable);
         if (promotions.getTotalElements() == 0) {
-            throw  new ErrorException("No promotions found", ErrorCode.ERROR_MODEL_NOT_FOUND);
+            throw new ErrorException("No promotions found", ErrorCode.ERROR_MODEL_NOT_FOUND);
         }
         return promotions.map(promotionMapper::mapToResponse);
     }
@@ -88,7 +90,8 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     public boolean activatePromotion(Long id) {
         Promotion promotion = promotionRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id,
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
         promotion.setIsActive(true);
         promotionRepository.save(promotion);
         return true;
@@ -97,7 +100,8 @@ public class PromotionServiceImpl implements PromotionService {
     @Override
     public boolean deactivatePromotion(Long id) {
         Promotion promotion = promotionRepository.findById(id)
-                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id, ErrorCode.ERROR_MODEL_NOT_FOUND));
+                .orElseThrow(() -> new ErrorException("Promotion not found with id: " + id,
+                        ErrorCode.ERROR_MODEL_NOT_FOUND));
         promotion.setIsActive(false);
         promotionRepository.save(promotion);
         return true;

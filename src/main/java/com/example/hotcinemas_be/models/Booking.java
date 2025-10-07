@@ -3,7 +3,9 @@ package com.example.hotcinemas_be.models;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.example.hotcinemas_be.enums.BookingStatus;
@@ -42,8 +44,8 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "booking_id")
-    private Long bookingId;
+    @Column(name = "id")
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -79,11 +81,11 @@ public class Booking {
     // Relationships
     @Builder.Default
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Payment> payments = new HashSet<>();
+    private List<Payment> payments = new ArrayList<>();
 
     @Builder.Default
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Ticket> tickets = new HashSet<>();
+    private List<Ticket> tickets = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -92,7 +94,7 @@ public class Booking {
             inverseJoinColumns = @JoinColumn(name = "promotion_id")
     )
     @Builder.Default
-    private Set<Promotion> promotions = new HashSet<>();
+    private List<Promotion> promotions = new ArrayList<>();
 
     // Helper methods
     public Integer getTotalSeats() {

@@ -6,5 +6,5 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RoomRepository extends JpaRepository<Room,Long> {
-    Page<Room> findRoomsByCinema_CinemaId(Long cinemaId, Pageable pageable);
+    Page<Room> findRoomsByCinema_Id(Long cinemaId, Pageable pageable);
 }

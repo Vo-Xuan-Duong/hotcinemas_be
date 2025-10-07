@@ -1,6 +1,6 @@
 package com.example.hotcinemas_be.jwts;
 
-import com.example.hotcinemas_be.dtos.requests.RefreshTokenRequest;
+import com.example.hotcinemas_be.dtos.auth.requests.RefreshTokenRequest;
 import com.example.hotcinemas_be.enums.TokenType;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
@@ -46,16 +46,16 @@ public class JwtService {
     public String generateToken(TokenType tokenType, UserDetails userDetails, String tokenId) {
 
         String token = Jwts.builder()
-                .claim("roles : ", getRole(userDetails))
+//                .claim("roles : ", getRole(userDetails))
                 .id(tokenId)
                 .subject(userDetails.getUsername())
-                .issuedAt( new Date(System.currentTimeMillis()))
+                .issuedAt(new Date(System.currentTimeMillis()))
                 .issuer(ISSUER)
                 .expiration(getExpirationDate(tokenType))
                 .signWith(getSecretKey(tokenType))
                 .compact();
 
-        if(tokenType.equals(TokenType.REFRESH)){
+        if (tokenType.equals(TokenType.REFRESH)) {
             RefreshTokenRequest refreshTokenRequest = RefreshTokenRequest.builder()
                     .tokenId(tokenId)
                     .token(token)
@@ -67,29 +67,28 @@ public class JwtService {
         return token;
     }
 
-
     private Date getExpirationDate(TokenType tokenType) {
-        return tokenType.equals(TokenType.ACCESS) ? new Date(System.currentTimeMillis() + EXPIRATION_ACCESS) :
-                new Date(System.currentTimeMillis() + EXPIRATION_REFRESH);
+        return tokenType.equals(TokenType.ACCESS) ? new Date(System.currentTimeMillis() + EXPIRATION_ACCESS)
+                : new Date(System.currentTimeMillis() + EXPIRATION_REFRESH);
     }
 
     private SecretKey getSecretKey(TokenType tokenType) {
-        return tokenType.equals(TokenType.ACCESS) ?
-                io.jsonwebtoken.security.Keys.hmacShaKeyFor(SECRET_ACCESS.getBytes()) :
-                io.jsonwebtoken.security.Keys.hmacShaKeyFor(SECRET_REFRESH.getBytes());
+        return tokenType.equals(TokenType.ACCESS)
+                ? io.jsonwebtoken.security.Keys.hmacShaKeyFor(SECRET_ACCESS.getBytes())
+                : io.jsonwebtoken.security.Keys.hmacShaKeyFor(SECRET_REFRESH.getBytes());
     }
 
-    private String getRole(UserDetails userDetails) {
-        if (userDetails == null || userDetails.getAuthorities() == null || userDetails.getAuthorities().isEmpty()) {
-            return null;
-        }
-        log.info("userDetails.getAuthorities(): {}", userDetails.getAuthorities());
-        log.info("userDetails.getAuthorities(1): {}", userDetails.getAuthorities().stream().findFirst());
-        return userDetails.getAuthorities().stream()
-                .findFirst()
-                .map(GrantedAuthority::getAuthority)
-                .orElse(null);
-    }
+//    private String getRole(UserDetails userDetails) {
+//        if (userDetails == null || userDetails.getAuthorities() == null || userDetails.getAuthorities().isEmpty()) {
+//            return null;
+//        }
+//        log.info("userDetails.getAuthorities(): {}", userDetails.getAuthorities());
+//        log.info("userDetails.getAuthorities(1): {}", userDetails.getAuthorities().stream().findFirst());
+//        return userDetails.getAuthorities().stream()
+//                .findFirst()
+//                .map(GrantedAuthority::getAuthority)
+//                .orElse(null);
+//    }
 
     public Claims extractClaims(String token, TokenType tokenType) {
         return Jwts.parser()

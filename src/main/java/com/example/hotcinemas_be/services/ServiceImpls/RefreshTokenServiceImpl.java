@@ -1,7 +1,7 @@
 package com.example.hotcinemas_be.services.ServiceImpls;
 
-import com.example.hotcinemas_be.dtos.requests.RefreshTokenRequest;
-import com.example.hotcinemas_be.dtos.responses.RefreshTokenResponse;
+import com.example.hotcinemas_be.dtos.auth.requests.RefreshTokenRequest;
+import com.example.hotcinemas_be.dtos.auth.responses.RefreshTokenResponse;
 import com.example.hotcinemas_be.exceptions.ErrorCode;
 import com.example.hotcinemas_be.exceptions.ErrorException;
 import com.example.hotcinemas_be.mappers.RefreshTokenMapper;
@@ -22,20 +22,21 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final UserRepository userRepository;
 
     public RefreshTokenServiceImpl(RefreshTokenRepository refreshTokenRepository,
-                                    RefreshTokenMapper refreshTokenMapper,
-                                   UserRepository userRepository) {
+            RefreshTokenMapper refreshTokenMapper,
+            UserRepository userRepository) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.refreshTokenMapper = refreshTokenMapper;
         this.userRepository = userRepository;
     }
 
-    public RefreshTokenResponse createRefreshToken(RefreshTokenRequest refreshTokenRequest) {
+    public void createRefreshToken(RefreshTokenRequest refreshTokenRequest) {
         RefreshToken refreshToken = RefreshToken.builder()
-                .tokenId(refreshTokenRequest.getTokenId())
+                .id(refreshTokenRequest.getTokenId())
                 .token(refreshTokenRequest.getToken())
-                .user(userRepository.findByUsername(refreshTokenRequest.getUsername()).orElseThrow(() -> new ErrorException( "User not found", ErrorCode.ERROR_MODEL_NOT_FOUND)))
+                .user(userRepository.findByUsername(refreshTokenRequest.getUsername())
+                        .orElseThrow(() -> new ErrorException("User not found", ErrorCode.ERROR_MODEL_NOT_FOUND)))
                 .build();
-        return refreshTokenMapper.mapToResponse(refreshTokenRepository.save(refreshToken));
+        refreshTokenMapper.mapToResponse(refreshTokenRepository.save(refreshToken));
     }
 
     public List<RefreshTokenResponse> getAllRefreshTokens(Pageable pageable) {
